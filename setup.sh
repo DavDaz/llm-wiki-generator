@@ -105,17 +105,18 @@ touch "${WIKI_DIR}/raw/.gitkeep"
 # ─────────────────────────────────────────
 
 CREATED_DATE=$(date +%Y-%m-%d)
+NL=$'\n'
 
 # Entities list para YAML
 ENTITIES_LIST=""
 for e in "${ENTITIES[@]}"; do
-    ENTITIES_LIST="${ENTITIES_LIST}  - ${e}\n"
+    ENTITIES_LIST="${ENTITIES_LIST}  - ${e}${NL}"
 done
 
 # Page types list para YAML
 PAGE_TYPES_LIST=""
 for t in "${PAGE_TYPES[@]}"; do
-    PAGE_TYPES_LIST="${PAGE_TYPES_LIST}  - ${t}\n"
+    PAGE_TYPES_LIST="${PAGE_TYPES_LIST}  - ${t}${NL}"
 done
 
 # Page types detail — descripción de cada tipo
@@ -123,25 +124,25 @@ PAGE_TYPES_DETAIL=""
 for t in "${PAGE_TYPES[@]}"; do
     case "$t" in
         proceso)
-            PAGE_TYPES_DETAIL="${PAGE_TYPES_DETAIL}### \`proceso\`\nDescribe cómo hacer algo: pasos secuenciales, precondiciones, actor responsable, resultado esperado.\nSlug: \`verbo-objeto.md\` (ej: \`crear-usuario.md\`)\n\n"
+            PAGE_TYPES_DETAIL="${PAGE_TYPES_DETAIL}### \`proceso\`${NL}Describe cómo hacer algo: pasos secuenciales, precondiciones, actor responsable, resultado esperado.${NL}Slug: \`verbo-objeto.md\` (ej: \`crear-usuario.md\`)${NL}${NL}"
             ;;
         referencia)
-            PAGE_TYPES_DETAIL="${PAGE_TYPES_DETAIL}### \`referencia\`\nDefine qué es algo: términos, listas, tablas, configuraciones.\nSlug: \`sustantivo.md\` (ej: \`roles.md\`, \`permisos.md\`)\n\n"
+            PAGE_TYPES_DETAIL="${PAGE_TYPES_DETAIL}### \`referencia\`${NL}Define qué es algo: términos, listas, tablas, configuraciones.${NL}Slug: \`sustantivo.md\` (ej: \`roles.md\`, \`permisos.md\`)${NL}${NL}"
             ;;
         entidad)
-            PAGE_TYPES_DETAIL="${PAGE_TYPES_DETAIL}### \`entidad\`\nDescribe un sistema, componente, actor o grupo específico del dominio.\nSlug: \`nombre-entidad.md\` (ej: \`sistema-renab.md\`)\n\n"
+            PAGE_TYPES_DETAIL="${PAGE_TYPES_DETAIL}### \`entidad\`${NL}Describe un sistema, componente, actor o grupo específico del dominio.${NL}Slug: \`nombre-entidad.md\` (ej: \`sistema-renab.md\`)${NL}${NL}"
             ;;
         politica)
-            PAGE_TYPES_DETAIL="${PAGE_TYPES_DETAIL}### \`politica\`\nEstablece reglas, restricciones o lineamientos que deben cumplirse.\nSlug: \`politica-tema.md\` (ej: \`politica-acceso.md\`)\n\n"
+            PAGE_TYPES_DETAIL="${PAGE_TYPES_DETAIL}### \`politica\`${NL}Establece reglas, restricciones o lineamientos que deben cumplirse.${NL}Slug: \`politica-tema.md\` (ej: \`politica-acceso.md\`)${NL}${NL}"
             ;;
         regulacion)
-            PAGE_TYPES_DETAIL="${PAGE_TYPES_DETAIL}### \`regulacion\`\nDocumenta normativa legal o regulatoria aplicable al dominio. Debe citar artículo o fuente legal.\nSlug: \`regulacion-tema.md\` (ej: \`regulacion-datos-personales.md\`)\n\n"
+            PAGE_TYPES_DETAIL="${PAGE_TYPES_DETAIL}### \`regulacion\`${NL}Documenta normativa legal o regulatoria aplicable al dominio. Debe citar artículo o fuente legal.${NL}Slug: \`regulacion-tema.md\` (ej: \`regulacion-datos-personales.md\`)${NL}${NL}"
             ;;
         reporte)
-            PAGE_TYPES_DETAIL="${PAGE_TYPES_DETAIL}### \`reporte\`\nResultado generado automáticamente por operaciones del wiki (lint, síntesis).\nSlug: \`lint-YYYY-MM-DD.md\` o \`reporte-tema.md\`\n\n"
+            PAGE_TYPES_DETAIL="${PAGE_TYPES_DETAIL}### \`reporte\`${NL}Resultado generado automáticamente por operaciones del wiki (lint, síntesis).${NL}Slug: \`lint-YYYY-MM-DD.md\` o \`reporte-tema.md\`${NL}${NL}"
             ;;
         *)
-            PAGE_TYPES_DETAIL="${PAGE_TYPES_DETAIL}### \`${t}\`\nTipo personalizado para este dominio.\nSlug: \`${t}-tema.md\`\n\n"
+            PAGE_TYPES_DETAIL="${PAGE_TYPES_DETAIL}### \`${t}\`${NL}Tipo personalizado para este dominio.${NL}Slug: \`${t}-tema.md\`${NL}${NL}"
             ;;
     esac
 done
@@ -149,34 +150,30 @@ done
 # Domain conventions
 DOMAIN_CONVENTIONS=""
 if [ ${#CONVENTIONS[@]} -eq 0 ]; then
-    DOMAIN_CONVENTIONS="> Sin convenciones específicas definidas al momento del setup.\n> Agregar aquí las reglas particulares de este dominio a medida que emerjan."
+    DOMAIN_CONVENTIONS="> Sin convenciones específicas definidas al momento del setup.${NL}> Agregar aquí las reglas particulares de este dominio a medida que emerjan."
 else
     for c in "${CONVENTIONS[@]}"; do
-        DOMAIN_CONVENTIONS="${DOMAIN_CONVENTIONS}- ${c}\n"
+        DOMAIN_CONVENTIONS="${DOMAIN_CONVENTIONS}- ${c}${NL}"
     done
 fi
 
 # ─────────────────────────────────────────
-# 4. Generar CLAUDE.md
+# 4. Generar CLAUDE.md — todo via Python para evitar problemas de sed en macOS
 # ─────────────────────────────────────────
 
-sed \
-    -e "s|{{WIKI_NAME}}|${WIKI_NAME}|g" \
-    -e "s|{{WIKI_SLUG}}|${WIKI_SLUG}|g" \
-    -e "s|{{WIKI_ROOT}}|${WIKI_SLUG}-wiki|g" \
-    -e "s|{{LANGUAGE}}|${LANGUAGE}|g" \
-    -e "s|{{CREATED_DATE}}|${CREATED_DATE}|g" \
-    -e "s|{{ENTITIES_LIST}}|${ENTITIES_LIST}|g" \
-    -e "s|{{PAGE_TYPES_LIST}}|${PAGE_TYPES_LIST}|g" \
-    "${SCRIPT_DIR}/CLAUDE.md.template" > "${WIKI_DIR}/CLAUDE.md"
+cp "${SCRIPT_DIR}/CLAUDE.md.template" "${WIKI_DIR}/CLAUDE.md"
 
-# Reemplazos multilinea con Python (más confiable que sed para bloques)
 python3 - <<PYEOF
-import re
-
 with open("${WIKI_DIR}/CLAUDE.md", "r") as f:
     content = f.read()
 
+content = content.replace("{{WIKI_NAME}}", """${WIKI_NAME}""")
+content = content.replace("{{WIKI_SLUG}}", """${WIKI_SLUG}""")
+content = content.replace("{{WIKI_ROOT}}", """${WIKI_SLUG}-wiki""")
+content = content.replace("{{LANGUAGE}}", """${LANGUAGE}""")
+content = content.replace("{{CREATED_DATE}}", """${CREATED_DATE}""")
+content = content.replace("{{ENTITIES_LIST}}", """${ENTITIES_LIST}""")
+content = content.replace("{{PAGE_TYPES_LIST}}", """${PAGE_TYPES_LIST}""")
 content = content.replace("{{PAGE_TYPES_DETAIL}}", """${PAGE_TYPES_DETAIL}""")
 content = content.replace("{{DOMAIN_CONVENTIONS}}", """${DOMAIN_CONVENTIONS}""")
 
