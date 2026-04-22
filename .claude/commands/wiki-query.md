@@ -1,3 +1,8 @@
+---
+description: Responde preguntas usando exclusivamente el conocimiento compilado en wiki/.
+argument-hint: [tu pregunta]
+---
+
 # wiki-query
 
 Responde preguntas usando exclusivamente el conocimiento compilado en `wiki/`.

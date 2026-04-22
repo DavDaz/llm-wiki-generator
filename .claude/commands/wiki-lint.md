@@ -1,3 +1,7 @@
+---
+description: Audita el wiki completo y genera un reporte de salud con errores, advertencias e info.
+---
+
 # wiki-lint
 
 Audita el wiki completo y genera un reporte de salud con severidades.
