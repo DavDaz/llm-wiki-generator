@@ -76,11 +76,12 @@ echo ""
 echo -e "${YELLOW}→ CLI a utilizar${NC}"
 echo "  1) Claude Code  (.claude/commands/ + CLAUDE.md)"
 echo "  2) OpenCode     (.opencode/commands/ + AGENTS.md)"
-echo "  3) Ambos"
-read -r -p "  Opción [1/2/3] (default: 1): " CLI_CHOICE
+echo "  3) Pi           (.pi/prompts/ + AGENTS.md)"
+echo "  4) Todos"
+read -r -p "  Opción [1/2/3/4] (default: 1): " CLI_CHOICE
 CLI_CHOICE=${CLI_CHOICE:-1}
-if [[ ! "$CLI_CHOICE" =~ ^[123]$ ]]; then
-    echo "Error: opción inválida. Ingresá 1, 2 o 3."
+if [[ ! "$CLI_CHOICE" =~ ^[1234]$ ]]; then
+    echo "Error: opción inválida. Ingresá 1, 2, 3 o 4."
     exit 1
 fi
 
@@ -171,8 +172,9 @@ if [[ -d "${WIKI_DIR}" ]]; then
 fi
 
 mkdir -p "${WIKI_DIR}/raw" "${WIKI_DIR}/wiki"
-[[ "$CLI_CHOICE" == "1" || "$CLI_CHOICE" == "3" ]] && mkdir -p "${WIKI_DIR}/.claude/commands"
-[[ "$CLI_CHOICE" == "2" || "$CLI_CHOICE" == "3" ]] && mkdir -p "${WIKI_DIR}/.opencode/commands"
+[[ "$CLI_CHOICE" == "1" || "$CLI_CHOICE" == "4" ]] && mkdir -p "${WIKI_DIR}/.claude/commands"
+[[ "$CLI_CHOICE" == "2" || "$CLI_CHOICE" == "4" ]] && mkdir -p "${WIKI_DIR}/.opencode/commands"
+[[ "$CLI_CHOICE" == "3" || "$CLI_CHOICE" == "4" ]] && mkdir -p "${WIKI_DIR}/.pi/prompts"
 
 touch "${WIKI_DIR}/raw/.gitkeep"
 
@@ -284,8 +286,9 @@ with open(path, "w") as f:
 PYEOF
 }
 
-[[ "$CLI_CHOICE" == "1" || "$CLI_CHOICE" == "3" ]] && generate_instructions "${WIKI_DIR}/CLAUDE.md"  ".claude/commands"
-[[ "$CLI_CHOICE" == "2" || "$CLI_CHOICE" == "3" ]] && generate_instructions "${WIKI_DIR}/AGENTS.md" ".opencode/commands"
+[[ "$CLI_CHOICE" == "1" || "$CLI_CHOICE" == "4" ]] && generate_instructions "${WIKI_DIR}/CLAUDE.md"  ".claude/commands"
+[[ "$CLI_CHOICE" == "2" || "$CLI_CHOICE" == "4" ]] && generate_instructions "${WIKI_DIR}/AGENTS.md" ".opencode/commands"
+[[ "$CLI_CHOICE" == "3" || "$CLI_CHOICE" == "4" ]] && generate_instructions "${WIKI_DIR}/AGENTS.md" ".pi/prompts"
 
 # ─────────────────────────────────────────
 # 5. Generar index.md y log.md
@@ -332,8 +335,9 @@ copy_commands() {
     cp "${SCRIPT_DIR}/commands/wiki-lint.md"   "${dest_dir}/"
 }
 
-[[ "$CLI_CHOICE" == "1" || "$CLI_CHOICE" == "3" ]] && copy_commands "${WIKI_DIR}/.claude/commands"
-[[ "$CLI_CHOICE" == "2" || "$CLI_CHOICE" == "3" ]] && copy_commands "${WIKI_DIR}/.opencode/commands"
+[[ "$CLI_CHOICE" == "1" || "$CLI_CHOICE" == "4" ]] && copy_commands "${WIKI_DIR}/.claude/commands"
+[[ "$CLI_CHOICE" == "2" || "$CLI_CHOICE" == "4" ]] && copy_commands "${WIKI_DIR}/.opencode/commands"
+[[ "$CLI_CHOICE" == "3" || "$CLI_CHOICE" == "4" ]] && copy_commands "${WIKI_DIR}/.pi/prompts"
 
 # ─────────────────────────────────────────
 # 7. Inicializar Git
@@ -367,15 +371,20 @@ echo -e "  📂 Fuentes:    ${BLUE}${WIKI_DIR}/raw/${NC}"
 echo -e "  📂 Wiki:       ${BLUE}${WIKI_DIR}/wiki/${NC}"
 echo ""
 
-if [[ "$CLI_CHOICE" == "1" || "$CLI_CHOICE" == "3" ]]; then
+if [[ "$CLI_CHOICE" == "1" || "$CLI_CHOICE" == "4" ]]; then
     echo -e "  ${YELLOW}Claude Code${NC}"
     echo -e "    📄 Schema:   ${BLUE}${WIKI_DIR}/CLAUDE.md${NC}"
     echo -e "    ⚙️  Commands: ${BLUE}${WIKI_DIR}/.claude/commands/${NC}"
 fi
-if [[ "$CLI_CHOICE" == "2" || "$CLI_CHOICE" == "3" ]]; then
+if [[ "$CLI_CHOICE" == "2" || "$CLI_CHOICE" == "4" ]]; then
     echo -e "  ${YELLOW}OpenCode${NC}"
     echo -e "    📄 Schema:   ${BLUE}${WIKI_DIR}/AGENTS.md${NC}"
     echo -e "    ⚙️  Commands: ${BLUE}${WIKI_DIR}/.opencode/commands/${NC}"
+fi
+if [[ "$CLI_CHOICE" == "3" || "$CLI_CHOICE" == "4" ]]; then
+    echo -e "  ${YELLOW}Pi${NC}"
+    echo -e "    📄 Schema:   ${BLUE}${WIKI_DIR}/AGENTS.md${NC}"
+    echo -e "    ⚙️  Commands: ${BLUE}${WIKI_DIR}/.pi/prompts/${NC}"
 fi
 
 echo ""
@@ -390,8 +399,12 @@ elif [[ "$CLI_CHOICE" == "2" ]]; then
     echo "  2. Abre una terminal en el directorio del wiki y ejecuta: opencode"
     echo "  3. Ejecuta: /wiki-ingest"
     echo "  4. Pregunta lo que necesites: /wiki-query ¿qué roles existen?"
+elif [[ "$CLI_CHOICE" == "3" ]]; then
+    echo "  2. Abre una terminal en el directorio del wiki y ejecuta: pi"
+    echo "  3. Ejecuta: /wiki-ingest"
+    echo "  4. Pregunta lo que necesites: /wiki-query ¿qué roles existen?"
 else
-    echo "  2. Abre Claude Code o una terminal con OpenCode en el directorio del wiki"
+    echo "  2. Abre el CLI de tu preferencia en el directorio del wiki"
     echo "  3. Ejecuta: /wiki-ingest"
     echo "  4. Pregunta lo que necesites: /wiki-query ¿qué roles existen?"
 fi

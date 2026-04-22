@@ -11,7 +11,7 @@ Audita el wiki completo y genera un reporte de salud con severidades.
 - Periódicamente (sugerido: cada vez que se hayan procesado 5+ fuentes nuevas)
 - Cuando se sospeche inconsistencia
 - Antes de compartir el wiki con nuevas personas
-- Después de actualizar el schema en `CLAUDE.md`
+- Después de actualizar el schema del dominio
 
 Activadores:
 - "audita el wiki"
@@ -24,7 +24,7 @@ Activadores:
 ## Protocolo de ejecución
 
 ### Paso 0 — Cargar el schema
-Leer `CLAUDE.md` completo. Las reglas del dominio definen qué está mal y qué no.
+Leer el schema del dominio (`CLAUDE.md` o `AGENTS.md`, el que exista en el proyecto) completo. Las reglas del dominio definen qué está mal y qué no.
 
 ### Paso 1 — Inventario
 Listar todos los archivos en `wiki/` (excepto `index.md`, `log.md`, y reportes de lint anteriores).
@@ -38,7 +38,7 @@ Leer `wiki/index.md` para comparar contra archivos reales.
 2. **Slugs inválidos** — nombres de archivo que no siguen las reglas de nomenclatura del schema
 3. **Wikilinks rotos** — `[[referencias]]` a páginas que no existen en `wiki/`
 4. **Deprecados sin sucesor** — páginas con `status: deprecado` sin campo `ver_sucesor`
-5. **Tipo inválido** — páginas con un `tipo` que no está definido en `CLAUDE.md`
+5. **Tipo inválido** — páginas con un `tipo` que no está definido en el schema
 
 **Checks de Advertencia 🟡** (degradan calidad del wiki):
 

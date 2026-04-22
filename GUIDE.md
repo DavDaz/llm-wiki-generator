@@ -8,7 +8,7 @@
 
 ### Nombre del wiki
 
-Puramente cosmético. Aparece en el título de `CLAUDE.md`, en `wiki/index.md` y en `wiki/log.md`. No afecta ninguna lógica. Sirve para que cuando el CLI abra el proyecto sepa con qué dominio está trabajando.
+Puramente cosmético. Aparece en el título del schema, en `wiki/index.md` y en `wiki/log.md`. No afecta ninguna lógica. Sirve para que cuando el CLI abra el proyecto sepa con qué dominio está trabajando.
 
 ---
 
@@ -33,7 +33,7 @@ Es el identificador técnico del dominio. Útil si en el futuro tenés múltiple
 
 ### Idioma
 
-La IA genera todas las páginas de `wiki/` en este idioma. Si ponés `es`, escribe en español. Si ponés `en`, en inglés. Solo afecta el contenido generado, no los archivos del sistema (`index.md`, `log.md`, `CLAUDE.md`).
+La IA genera todas las páginas de `wiki/` en este idioma. Si ponés `es`, escribe en español. Si ponés `en`, en inglés. Solo afecta el contenido generado, no los archivos del sistema (`index.md`, `log.md`, el schema).
 
 ---
 
@@ -86,7 +86,7 @@ Los expedientes siempre tienen un número único de 8 dígitos
 Los roles siempre listan sus permisos asociados explícitamente
 ```
 
-Si no tenés convenciones claras al inicio, dejalo vacío. Emergen naturalmente a medida que usás el wiki y encontrás inconsistencias. Cuando las identifiques, las agregás en la sección correspondiente del `CLAUDE.md`.
+Si no tenés convenciones claras al inicio, dejalo vacío. Emergen naturalmente a medida que usás el wiki y encontrás inconsistencias. Cuando las identifiques, las agregás en la sección correspondiente del schema.
 
 ---
 

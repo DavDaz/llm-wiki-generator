@@ -24,7 +24,7 @@ Activadores:
 ## Protocolo de ejecución
 
 ### Paso 0 — Cargar el schema
-Leer `CLAUDE.md` para entender el dominio antes de buscar.
+Leer el schema del dominio (`CLAUDE.md` o `AGENTS.md`, el que exista en el proyecto) para entender el dominio antes de buscar.
 
 ### Paso 1 — Leer el índice
 Leer `wiki/index.md` completo.

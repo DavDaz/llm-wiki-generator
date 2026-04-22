@@ -22,8 +22,8 @@ Activadores:
 ## Protocolo de ejecución
 
 ### Paso 0 — Cargar el schema
-Leer `CLAUDE.md` completo antes de cualquier otra acción.
-Las reglas del dominio en `CLAUDE.md` tienen prioridad sobre cualquier intuición.
+Leer el schema del dominio (`CLAUDE.md` o `AGENTS.md`, el que exista en el proyecto) completo antes de cualquier otra acción.
+Las reglas del dominio en el schema tienen prioridad sobre cualquier intuición.
 
 ### Paso 1 — Identificar fuentes nuevas
 Leer `wiki/log.md` para obtener la lista de archivos ya procesados.
@@ -65,7 +65,7 @@ Para cada página a crear o actualizar:
 ---
 tipo: [proceso|referencia|entidad|politica]
 titulo: [Nombre Legible]
-dominio: [wiki-slug del CLAUDE.md]
+dominio: [wiki-slug definido en el schema]
 status: borrador
 confianza: [alta|media|baja según reglas del schema]
 fuentes: [raw/nombre-archivo.ext]

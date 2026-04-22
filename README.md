@@ -21,7 +21,7 @@ flowchart TD
     D --> D3["📄 Tipos de página<br/>ej: proceso, referencia"]
     D --> D4["⚙️ Convenciones<br/>del dominio"]
 
-    D1 & D2 & D3 & D4 --> E["Elige CLI<br/>(Claude Code / OpenCode / Ambos)"]
+    D1 & D2 & D3 & D4 --> E["Elige CLI<br/>(Claude Code / OpenCode / Pi / Todos)"]
 
     E --> F["Repo Git listo<br/>con estructura completa"]
 
@@ -46,7 +46,7 @@ flowchart TD
     B --> C["/wiki-ingest"]
 
     subgraph IA ["La IA hace esto automáticamente"]
-        C --> D["Lee CLAUDE.md<br/>(reglas del dominio)"]
+        C --> D["Lee el schema<br/>(reglas del dominio)"]
         D --> E["Lee wiki/log.md<br/>(¿ya fue procesado?)"]
         E --> F["Analiza el documento<br/>e identifica conceptos"]
         F --> G{"¿Existe una página<br/>para este concepto?"}
@@ -128,12 +128,12 @@ El script pregunta:
 - **Slug** — ej: `mides-renab`
 - **Idioma** — ej: `es`
 - **Directorio destino** — ej: `../mides-renab-wiki`
-- **CLI a utilizar** — Claude Code, OpenCode, o ambos
+- **CLI a utilizar** — Claude Code, OpenCode, Pi, o todos
 - **Entidades primarias** — los "sustantivos" de tu dominio
 - **Tipos de página** — los tipos de contenido que manejas
 - **Convenciones específicas** — reglas particulares del dominio
 
-Al terminar tenés un repo Git listo con el schema configurado para tu dominio (`CLAUDE.md`, `AGENTS.md`, o ambos según el CLI elegido).
+Al terminar tenés un repo Git listo con el schema configurado para tu dominio (`CLAUDE.md` para Claude Code, `AGENTS.md` para OpenCode o Pi, o ambos).
 
 ---
 
@@ -145,7 +145,7 @@ Al terminar tenés un repo Git listo con el schema configurado para tu dominio (
 # Copia tu documento al wiki
 cp mi-manual.pdf ruta-a-tu-wiki/raw/
 
-# En Claude Code o OpenCode, ejecuta:
+# En Claude Code, OpenCode o Pi, ejecuta:
 /wiki-ingest
 ```
 
@@ -154,7 +154,7 @@ La IA lee el documento, crea o actualiza páginas en `wiki/`, actualiza el índi
 ### Hacer preguntas
 
 ```bash
-# En Claude Code o OpenCode:
+# En Claude Code, OpenCode o Pi:
 /wiki-query ¿qué permisos tiene el rol Supervisor?
 /wiki-query ¿cómo se registra un beneficiario nuevo?
 /wiki-query ¿cuáles son los grupos de usuario que existen?
@@ -165,7 +165,7 @@ La IA lee `index.md`, abre las páginas relevantes y responde con referencias.
 ### Auditar el wiki
 
 ```bash
-# En Claude Code o OpenCode:
+# En Claude Code, OpenCode o Pi:
 /wiki-lint
 ```
 
@@ -185,7 +185,7 @@ El archivo más importante — el schema del dominio. Define:
 - Las reglas exactas de cada operación (ingest, query, lint)
 - Las convenciones específicas del dominio
 
-La IA lo lee antes de cualquier operación. Se llama `CLAUDE.md` si usás Claude Code, `AGENTS.md` si usás OpenCode. Si el dominio evoluciona, se actualiza aquí y se corre `/wiki-lint` para detectar páginas que ya no cumplen las nuevas reglas.
+La IA lo lee antes de cualquier operación. Se llama `CLAUDE.md` si usás Claude Code, `AGENTS.md` si usás OpenCode o Pi. Si el dominio evoluciona, se actualiza aquí y se corre `/wiki-lint` para detectar páginas que ya no cumplen las nuevas reglas.
 
 ### `wiki/index.md`
 
@@ -243,7 +243,7 @@ Cuando el dominio cambia (nuevo tipo de página, nueva convención):
 
 ## Escalar más allá de ~200 páginas
 
-Cuando el índice plano se vuelve lento, agregar [QMD](https://qmd.ai) como capa de búsqueda híbrida (BM25 + vector). Los skills ya están preparados para esta transición — solo actualizar la sección de query en `CLAUDE.md`.
+Cuando el índice plano se vuelve lento, agregar [QMD](https://qmd.ai) como capa de búsqueda híbrida (BM25 + vector). Los skills ya están preparados para esta transición — solo actualizar la sección de query en el schema del dominio.
 
 ---
 
