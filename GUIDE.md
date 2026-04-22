@@ -8,7 +8,7 @@
 
 ### Nombre del wiki
 
-Puramente cosmético. Aparece en el título de `CLAUDE.md`, en `wiki/index.md` y en `wiki/log.md`. No afecta ninguna lógica. Sirve para que cuando Claude Code abra el proyecto sepa con qué dominio está trabajando.
+Puramente cosmético. Aparece en el título de `CLAUDE.md`, en `wiki/index.md` y en `wiki/log.md`. No afecta ninguna lógica. Sirve para que cuando el CLI abra el proyecto sepa con qué dominio está trabajando.
 
 ---
 
@@ -55,7 +55,7 @@ Eso es todo el dominio. No importa si el primer documento que cargás habla solo
 
 **¿Qué pasa si surge una entidad nueva?**
 
-No necesitás re-ejecutar el setup. Abrís `CLAUDE.md` del wiki generado y la agregás en la sección `entidades_primarias` del YAML. Después corrés `/wiki-lint` para detectar si hay páginas existentes que la mencionan sin tener su propia entrada.
+No necesitás re-ejecutar el setup. Abrís `CLAUDE.md` o `AGENTS.md` del wiki generado y la agregás en la sección `entidades_primarias` del YAML. Después corrés `/wiki-lint` para detectar si hay páginas existentes que la mencionan sin tener su propia entrada.
 
 ---
 
@@ -142,28 +142,28 @@ Eso le da a la IA todo lo necesario para generar `anular-entrada.md` con frontma
 
 ---
 
-## Cuándo evolucionar CLAUDE.md
+## Cuándo evolucionar el schema
 
-`CLAUDE.md` no es estático — está diseñado para crecer con el dominio. Editarlo es normal y esperado. Lo hacés cuando:
+El schema del dominio (`CLAUDE.md` o `AGENTS.md`) no es estático — está diseñado para crecer con el dominio. Editarlo es normal y esperado. Lo hacés cuando:
 
-| Situación | Qué hacer en CLAUDE.md |
+| Situación | Qué hacer en el schema |
 |-----------|------------------------|
 | Aparece un concepto nuevo que siempre va a existir | Agregar a `entidades_primarias` |
 | Empezás a documentar un módulo nuevo con categorías propias | Agregar a `tipos_de_pagina` |
 | Detectás que la IA siempre olvida algo importante | Agregar a `Convenciones específicas` |
 | Cambiás una convención existente | Editar la convención + agregar fila al historial de cambios |
 
-Después de cualquier cambio en CLAUDE.md, corré `/wiki-lint` para detectar páginas existentes que ya no cumplen las nuevas reglas.
+Después de cualquier cambio en el schema, corré `/wiki-lint` para detectar páginas existentes que ya no cumplen las nuevas reglas.
 
 ---
 
 ## El ciclo completo
 
 ```
-setup.sh                 → configurás el dominio una vez
-raw/ ← tus documentos   → tirás fuentes en cualquier momento
-/wiki-ingest             → la IA extrae y organiza el conocimiento
-/wiki-query              → preguntás en lenguaje natural
-/wiki-lint               → auditás consistencia periódicamente
-CLAUDE.md ← evoluciona   → cuando el dominio cambia, no cuando agregás docs
+setup.sh                      → configurás el dominio una vez
+raw/ ← tus documentos         → tirás fuentes en cualquier momento
+/wiki-ingest                  → la IA extrae y organiza el conocimiento
+/wiki-query                   → preguntás en lenguaje natural
+/wiki-lint                    → auditás consistencia periódicamente
+CLAUDE.md / AGENTS.md ← evoluciona → cuando el dominio cambia, no cuando agregás docs
 ```

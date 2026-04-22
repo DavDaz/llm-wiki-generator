@@ -21,14 +21,14 @@ flowchart TD
     D --> D3["📄 Tipos de página<br/>ej: proceso, referencia"]
     D --> D4["⚙️ Convenciones<br/>del dominio"]
 
-    D1 & D2 & D3 & D4 --> E["Genera CLAUDE.md<br/>configurado para tu dominio"]
+    D1 & D2 & D3 & D4 --> E["Elige CLI<br/>(Claude Code / OpenCode / Ambos)"]
 
     E --> F["Repo Git listo<br/>con estructura completa"]
 
     F --> G["📂 raw/<br/>Vacío — tus fuentes van aquí"]
     F --> H["📂 wiki/<br/>index.md · log.md vacíos"]
-    F --> I["⚙️ .claude/commands/<br/>wiki-ingest · wiki-query · wiki-lint"]
-    F --> J["🧠 CLAUDE.md<br/>Cerebro del sistema"]
+    F --> I["⚙️ commands/<br/>wiki-ingest · wiki-query · wiki-lint"]
+    F --> J["🧠 CLAUDE.md / AGENTS.md<br/>Cerebro del sistema"]
 
     style A fill:#4f46e5,color:#fff
     style F fill:#059669,color:#fff
@@ -101,12 +101,11 @@ flowchart TD
 llm-wiki-generator/
 ├── README.md                  ← este archivo
 ├── setup.sh                   ← genera un wiki nuevo
-├── CLAUDE.md.template         ← cerebro del sistema (con placeholders)
-└── .claude/
-    └── commands/
-        ├── wiki-ingest.md     ← skill: procesar fuentes nuevas
-        ├── wiki-query.md      ← skill: responder preguntas
-        └── wiki-lint.md       ← skill: auditar consistencia
+├── schema.md.template         ← schema del dominio (con placeholders)
+└── commands/
+    ├── wiki-ingest.md         ← skill: procesar fuentes nuevas
+    ├── wiki-query.md          ← skill: responder preguntas
+    └── wiki-lint.md           ← skill: auditar consistencia
 ```
 
 ---
@@ -129,11 +128,12 @@ El script pregunta:
 - **Slug** — ej: `mides-renab`
 - **Idioma** — ej: `es`
 - **Directorio destino** — ej: `../mides-renab-wiki`
+- **CLI a utilizar** — Claude Code, OpenCode, o ambos
 - **Entidades primarias** — los "sustantivos" de tu dominio
 - **Tipos de página** — los tipos de contenido que manejas
 - **Convenciones específicas** — reglas particulares del dominio
 
-Al terminar tienes un repo Git listo con `CLAUDE.md` configurado para tu dominio.
+Al terminar tenés un repo Git listo con el schema configurado para tu dominio (`CLAUDE.md`, `AGENTS.md`, o ambos según el CLI elegido).
 
 ---
 
@@ -145,7 +145,7 @@ Al terminar tienes un repo Git listo con `CLAUDE.md` configurado para tu dominio
 # Copia tu documento al wiki
 cp mi-manual.pdf ruta-a-tu-wiki/raw/
 
-# En Claude Code, ejecuta:
+# En Claude Code o OpenCode, ejecuta:
 /wiki-ingest
 ```
 
@@ -154,7 +154,7 @@ La IA lee el documento, crea o actualiza páginas en `wiki/`, actualiza el índi
 ### Hacer preguntas
 
 ```bash
-# En Claude Code:
+# En Claude Code o OpenCode:
 /wiki-query ¿qué permisos tiene el rol Supervisor?
 /wiki-query ¿cómo se registra un beneficiario nuevo?
 /wiki-query ¿cuáles son los grupos de usuario que existen?
@@ -165,7 +165,7 @@ La IA lee `index.md`, abre las páginas relevantes y responde con referencias.
 ### Auditar el wiki
 
 ```bash
-# En Claude Code:
+# En Claude Code o OpenCode:
 /wiki-lint
 ```
 
@@ -175,9 +175,9 @@ Genera un reporte en `wiki/lint-YYYY-MM-DD.md` con errores, advertencias e info.
 
 ## Archivos clave
 
-### `CLAUDE.md`
+### `CLAUDE.md` / `AGENTS.md`
 
-El archivo más importante. Define:
+El archivo más importante — el schema del dominio. Define:
 
 - Las entidades y tipos de página del dominio
 - Las reglas de nomenclatura (slugs)
@@ -185,7 +185,7 @@ El archivo más importante. Define:
 - Las reglas exactas de cada operación (ingest, query, lint)
 - Las convenciones específicas del dominio
 
-La IA lo lee antes de cualquier operación. Si el dominio evoluciona, se actualiza aquí y se corre `/wiki-lint` para detectar páginas que ya no cumplen las nuevas reglas.
+La IA lo lee antes de cualquier operación. Se llama `CLAUDE.md` si usás Claude Code, `AGENTS.md` si usás OpenCode. Si el dominio evoluciona, se actualiza aquí y se corre `/wiki-lint` para detectar páginas que ya no cumplen las nuevas reglas.
 
 ### `wiki/index.md`
 
@@ -234,8 +234,8 @@ actualizado: 2026-04-21
 
 Cuando el dominio cambia (nuevo tipo de página, nueva convención):
 
-1. Editar `CLAUDE.md` en la sección correspondiente
-2. Agregar una fila al historial de cambios al final del `CLAUDE.md`
+1. Editar `CLAUDE.md` o `AGENTS.md` en la sección correspondiente
+2. Agregar una fila al historial de cambios al final del archivo
 3. Correr `/wiki-lint` — detecta qué páginas existentes ya no cumplen las nuevas reglas
 4. Correr `/wiki-ingest` si hay fuentes pendientes
 

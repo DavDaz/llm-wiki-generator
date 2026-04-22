@@ -12,13 +12,13 @@ set -e
 # ─────────────────────────────────────────
 
 if ! command -v python3 &>/dev/null; then
-    echo "Error: python3 no encontrado. Es requerido para generar CLAUDE.md."
+    echo "Error: python3 no encontrado. Es requerido para generar el schema del wiki."
     exit 1
 fi
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-for required_file in "CLAUDE.md.template" ".claude/commands/wiki-ingest.md" ".claude/commands/wiki-query.md" ".claude/commands/wiki-lint.md"; do
+for required_file in "schema.md.template" "commands/wiki-ingest.md" "commands/wiki-query.md" "commands/wiki-lint.md"; do
     if [[ ! -f "${SCRIPT_DIR}/${required_file}" ]]; then
         echo "Error: archivo requerido no encontrado: ${required_file}"
         exit 1
@@ -73,6 +73,18 @@ read -r WIKI_DIR
 WIKI_DIR=${WIKI_DIR:-"./${WIKI_SLUG}-wiki"}
 
 echo ""
+echo -e "${YELLOW}→ CLI a utilizar${NC}"
+echo "  1) Claude Code  (.claude/commands/ + CLAUDE.md)"
+echo "  2) OpenCode     (.opencode/commands/ + AGENTS.md)"
+echo "  3) Ambos"
+read -r -p "  Opción [1/2/3] (default: 1): " CLI_CHOICE
+CLI_CHOICE=${CLI_CHOICE:-1}
+if [[ ! "$CLI_CHOICE" =~ ^[123]$ ]]; then
+    echo "Error: opción inválida. Ingresá 1, 2 o 3."
+    exit 1
+fi
+
+echo ""
 echo -e "${YELLOW}→ Entidades primarias del dominio${NC}"
 echo "  Son los conceptos centrales ('sustantivos') de tu dominio completo."
 echo "  La IA los usa como anclas al procesar documentos: cuando encuentre"
@@ -80,7 +92,7 @@ echo "  mención a una de estas entidades, creará o actualizará su página en 
 echo ""
 echo "  Pensá en todos los objetos, actores y sistemas que existen en tu dominio,"
 echo "  independientemente de los documentos que vayas a cargar."
-echo "  Podés agregar más entidades en CLAUDE.md si el dominio crece."
+echo "  Podés agregar más entidades en el archivo de instrucciones si el dominio crece."
 echo ""
 echo "  Ej: usuario, rol, permiso, beneficiario, expediente, sistema-renab"
 echo "  Escribí una por línea. Línea vacía para terminar."
@@ -134,7 +146,7 @@ echo "  Ej: 'Todo proceso debe indicar el rol responsable de ejecutarlo'"
 echo "      'Los roles siempre listan sus permisos asociados'"
 echo "      'Todo expediente tiene un número único de 8 dígitos'"
 echo ""
-echo "  Podés dejarlo vacío ahora y agregar convenciones en CLAUDE.md después."
+echo "  Podés dejarlo vacío ahora y agregar convenciones en el archivo de instrucciones después."
 echo "  Escribí una por línea. Línea vacía para terminar."
 echo ""
 
@@ -158,7 +170,9 @@ if [[ -d "${WIKI_DIR}" ]]; then
     [[ "$confirm" =~ ^[sS]$ ]] || { echo "Cancelado."; exit 0; }
 fi
 
-mkdir -p "${WIKI_DIR}/raw" "${WIKI_DIR}/wiki" "${WIKI_DIR}/.claude/commands"
+mkdir -p "${WIKI_DIR}/raw" "${WIKI_DIR}/wiki"
+[[ "$CLI_CHOICE" == "1" || "$CLI_CHOICE" == "3" ]] && mkdir -p "${WIKI_DIR}/.claude/commands"
+[[ "$CLI_CHOICE" == "2" || "$CLI_CHOICE" == "3" ]] && mkdir -p "${WIKI_DIR}/.opencode/commands"
 
 touch "${WIKI_DIR}/raw/.gitkeep"
 
@@ -220,26 +234,35 @@ else
 fi
 
 # ─────────────────────────────────────────
-# 4. Generar CLAUDE.md — todo via Python para evitar problemas de sed en macOS
+# 4. Generar archivo(s) de instrucciones
 # ─────────────────────────────────────────
 
-cp "${SCRIPT_DIR}/CLAUDE.md.template" "${WIKI_DIR}/CLAUDE.md"
+generate_instructions() {
+    local dest_file="$1"
+    local commands_dir="$2"
+    local instructions_file
+    instructions_file="$(basename "${dest_file}")"
 
-python3 - \
-    "${WIKI_DIR}/CLAUDE.md" \
-    "${WIKI_NAME}" \
-    "${WIKI_SLUG}" \
-    "${LANGUAGE}" \
-    "${CREATED_DATE}" \
-    "${ENTITIES_LIST}" \
-    "${PAGE_TYPES_LIST}" \
-    "${PAGE_TYPES_DETAIL}" \
-    "${DOMAIN_CONVENTIONS}" \
+    cp "${SCRIPT_DIR}/schema.md.template" "${dest_file}"
+
+    python3 - \
+        "${dest_file}" \
+        "${WIKI_NAME}" \
+        "${WIKI_SLUG}" \
+        "${LANGUAGE}" \
+        "${CREATED_DATE}" \
+        "${ENTITIES_LIST}" \
+        "${PAGE_TYPES_LIST}" \
+        "${PAGE_TYPES_DETAIL}" \
+        "${DOMAIN_CONVENTIONS}" \
+        "${commands_dir}" \
+        "${instructions_file}" \
 <<'PYEOF'
 import sys
 
 path, wiki_name, wiki_slug, language, created_date, \
-    entities_list, page_types_list, page_types_detail, domain_conventions = sys.argv[1:]
+    entities_list, page_types_list, page_types_detail, domain_conventions, \
+    commands_dir, instructions_file = sys.argv[1:]
 
 with open(path, "r") as f:
     content = f.read()
@@ -253,10 +276,16 @@ content = content.replace("{{ENTITIES_LIST}}", entities_list)
 content = content.replace("{{PAGE_TYPES_LIST}}", page_types_list)
 content = content.replace("{{PAGE_TYPES_DETAIL}}", page_types_detail)
 content = content.replace("{{DOMAIN_CONVENTIONS}}", domain_conventions)
+content = content.replace("{{COMMANDS_DIR}}", commands_dir)
+content = content.replace("{{INSTRUCTIONS_FILE}}", instructions_file)
 
 with open(path, "w") as f:
     f.write(content)
 PYEOF
+}
+
+[[ "$CLI_CHOICE" == "1" || "$CLI_CHOICE" == "3" ]] && generate_instructions "${WIKI_DIR}/CLAUDE.md"  ".claude/commands"
+[[ "$CLI_CHOICE" == "2" || "$CLI_CHOICE" == "3" ]] && generate_instructions "${WIKI_DIR}/AGENTS.md" ".opencode/commands"
 
 # ─────────────────────────────────────────
 # 5. Generar index.md y log.md
@@ -296,9 +325,15 @@ EOF
 # 6. Copiar skills
 # ─────────────────────────────────────────
 
-cp "${SCRIPT_DIR}/.claude/commands/wiki-ingest.md" "${WIKI_DIR}/.claude/commands/"
-cp "${SCRIPT_DIR}/.claude/commands/wiki-query.md"  "${WIKI_DIR}/.claude/commands/"
-cp "${SCRIPT_DIR}/.claude/commands/wiki-lint.md"   "${WIKI_DIR}/.claude/commands/"
+copy_commands() {
+    local dest_dir="$1"
+    cp "${SCRIPT_DIR}/commands/wiki-ingest.md" "${dest_dir}/"
+    cp "${SCRIPT_DIR}/commands/wiki-query.md"  "${dest_dir}/"
+    cp "${SCRIPT_DIR}/commands/wiki-lint.md"   "${dest_dir}/"
+}
+
+[[ "$CLI_CHOICE" == "1" || "$CLI_CHOICE" == "3" ]] && copy_commands "${WIKI_DIR}/.claude/commands"
+[[ "$CLI_CHOICE" == "2" || "$CLI_CHOICE" == "3" ]] && copy_commands "${WIKI_DIR}/.opencode/commands"
 
 # ─────────────────────────────────────────
 # 7. Inicializar Git
@@ -328,13 +363,36 @@ echo -e "${GREEN}║   ✓ Wiki creado exitosamente                 ║${NC}"
 echo -e "${GREEN}╚══════════════════════════════════════════════╝${NC}"
 echo ""
 echo -e "  📁 Directorio: ${BLUE}${WIKI_DIR}${NC}"
-echo -e "  📄 Schema:     ${BLUE}${WIKI_DIR}/CLAUDE.md${NC}"
 echo -e "  📂 Fuentes:    ${BLUE}${WIKI_DIR}/raw/${NC}"
 echo -e "  📂 Wiki:       ${BLUE}${WIKI_DIR}/wiki/${NC}"
 echo ""
+
+if [[ "$CLI_CHOICE" == "1" || "$CLI_CHOICE" == "3" ]]; then
+    echo -e "  ${YELLOW}Claude Code${NC}"
+    echo -e "    📄 Schema:   ${BLUE}${WIKI_DIR}/CLAUDE.md${NC}"
+    echo -e "    ⚙️  Commands: ${BLUE}${WIKI_DIR}/.claude/commands/${NC}"
+fi
+if [[ "$CLI_CHOICE" == "2" || "$CLI_CHOICE" == "3" ]]; then
+    echo -e "  ${YELLOW}OpenCode${NC}"
+    echo -e "    📄 Schema:   ${BLUE}${WIKI_DIR}/AGENTS.md${NC}"
+    echo -e "    ⚙️  Commands: ${BLUE}${WIKI_DIR}/.opencode/commands/${NC}"
+fi
+
+echo ""
 echo -e "${YELLOW}Próximos pasos:${NC}"
 echo "  1. Copia tus documentos existentes en raw/"
-echo "  2. Abre Claude Code en el directorio del wiki"
-echo "  3. Ejecuta: /wiki-ingest"
-echo "  4. Pregunta lo que necesites: /wiki-query ¿qué roles existen?"
+
+if [[ "$CLI_CHOICE" == "1" ]]; then
+    echo "  2. Abre Claude Code en el directorio del wiki"
+    echo "  3. Ejecuta: /wiki-ingest"
+    echo "  4. Pregunta lo que necesites: /wiki-query ¿qué roles existen?"
+elif [[ "$CLI_CHOICE" == "2" ]]; then
+    echo "  2. Abre una terminal en el directorio del wiki y ejecuta: opencode"
+    echo "  3. Ejecuta: /wiki-ingest"
+    echo "  4. Pregunta lo que necesites: /wiki-query ¿qué roles existen?"
+else
+    echo "  2. Abre Claude Code o una terminal con OpenCode en el directorio del wiki"
+    echo "  3. Ejecuta: /wiki-ingest"
+    echo "  4. Pregunta lo que necesites: /wiki-query ¿qué roles existen?"
+fi
 echo ""
