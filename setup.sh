@@ -7,6 +7,24 @@
 
 set -e
 
+# ─────────────────────────────────────────
+# Verificaciones previas
+# ─────────────────────────────────────────
+
+if ! command -v python3 &>/dev/null; then
+    echo "Error: python3 no encontrado. Es requerido para generar CLAUDE.md."
+    exit 1
+fi
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+for required_file in "CLAUDE.md.template" ".claude/commands/wiki-ingest.md" ".claude/commands/wiki-query.md" ".claude/commands/wiki-lint.md"; do
+    if [[ ! -f "${SCRIPT_DIR}/${required_file}" ]]; then
+        echo "Error: archivo requerido no encontrado: ${required_file}"
+        exit 1
+    fi
+done
+
 # Colores
 GREEN='\033[0;32m'
 BLUE='\033[0;34m'
@@ -23,25 +41,49 @@ echo ""
 # 1. Recolectar datos del dominio
 # ─────────────────────────────────────────
 
-echo -e "${YELLOW}→ Nombre del wiki${NC} (ej: MIDES RENAB, Banco XYZ):"
+echo -e "${YELLOW}→ Nombre del wiki${NC}"
+echo "  Nombre legible de tu dominio. Aparece en el título del wiki y en los logs."
+echo "  Ej: MIDES RENAB, Banco XYZ, Sistema de Facturación"
 read -r WIKI_NAME
 
-echo -e "${YELLOW}→ Slug del wiki${NC} (kebab-case, sin espacios, ej: mides-renab, banco-xyz):"
+echo ""
+echo -e "${YELLOW}→ Slug del wiki${NC}"
+echo "  Identificador técnico en kebab-case. Se usa como:"
+echo "    - Nombre del directorio creado (ej: banco-xyz-wiki/)"
+echo "    - Campo 'dominio:' en el frontmatter de cada página del wiki"
+echo "  Solo letras minúsculas, números y guiones. Sin espacios ni acentos."
+echo "  Ej: mides-renab, banco-xyz, sistema-facturacion"
 read -r WIKI_SLUG
+if [[ ! "$WIKI_SLUG" =~ ^[a-z0-9]+(-[a-z0-9]+)*$ ]]; then
+    echo "Error: slug inválido. Usá solo letras minúsculas, números y guiones (ej: mides-renab)."
+    exit 1
+fi
 
-echo -e "${YELLOW}→ Idioma principal${NC} (ej: es, en) [default: es]:"
+echo ""
+echo -e "${YELLOW}→ Idioma principal${NC} (ej: es, en) [default: es]"
+echo "  La IA generará todas las páginas del wiki en este idioma."
 read -r LANGUAGE
 LANGUAGE=${LANGUAGE:-es}
 
-echo -e "${YELLOW}→ Directorio destino${NC} (ej: ../mides-renab-wiki) [default: ./${WIKI_SLUG}-wiki]:"
+echo ""
+echo -e "${YELLOW}→ Directorio destino${NC} [default: ./${WIKI_SLUG}-wiki]"
+echo "  Ruta donde se creará el wiki. Puede ser relativa o absoluta."
+echo "  Ej: ../mis-wikis/banco-xyz  o  /home/usuario/wikis/banco-xyz"
 read -r WIKI_DIR
 WIKI_DIR=${WIKI_DIR:-"./${WIKI_SLUG}-wiki"}
 
 echo ""
 echo -e "${YELLOW}→ Entidades primarias del dominio${NC}"
-echo "  Son los 'sustantivos' principales: objetos, actores, sistemas que existen en tu dominio."
-echo "  Escribe una por línea. Línea vacía para terminar."
-echo "  Ej: usuario, beneficiario, rol, permiso, sistema"
+echo "  Son los conceptos centrales ('sustantivos') de tu dominio completo."
+echo "  La IA los usa como anclas al procesar documentos: cuando encuentre"
+echo "  mención a una de estas entidades, creará o actualizará su página en el wiki."
+echo ""
+echo "  Pensá en todos los objetos, actores y sistemas que existen en tu dominio,"
+echo "  independientemente de los documentos que vayas a cargar."
+echo "  Podés agregar más entidades en CLAUDE.md si el dominio crece."
+echo ""
+echo "  Ej: usuario, rol, permiso, beneficiario, expediente, sistema-renab"
+echo "  Escribí una por línea. Línea vacía para terminar."
 echo ""
 
 ENTITIES=()
@@ -53,8 +95,20 @@ done
 
 echo ""
 echo -e "${YELLOW}→ Tipos de página del dominio${NC}"
-echo "  Opciones sugeridas: proceso, referencia, entidad, politica, regulacion, reporte"
-echo "  Escribe los que aplican, uno por línea. Línea vacía para usar los defaults."
+echo "  Define qué categorías de conocimiento existen en tu wiki."
+echo "  Cada página generada por la IA tendrá exactamente uno de estos tipos,"
+echo "  que determina su estructura y cómo se nombra el archivo."
+echo ""
+echo "  Tipos disponibles y cuándo usarlos:"
+echo "    proceso    → pasos para hacer algo (ej: crear-usuario.md, anular-entrada.md)"
+echo "    referencia → listas, tablas, definiciones (ej: roles.md, codigos-error.md)"
+echo "    entidad    → descripción de un sistema o actor (ej: sistema-renab.md)"
+echo "    politica   → reglas o restricciones que deben cumplirse"
+echo "    regulacion → normativa legal con cita de fuente"
+echo "    reporte    → generado automáticamente por /wiki-lint"
+echo ""
+echo "  Dejá vacío para usar los defaults: proceso, referencia, entidad, politica"
+echo "  Escribí uno por línea. Línea vacía para terminar."
 echo ""
 
 PAGE_TYPES=()
@@ -72,10 +126,16 @@ fi
 
 echo ""
 echo -e "${YELLOW}→ Convenciones específicas del dominio${NC}"
-echo "  Reglas particulares de TU dominio que la IA debe seguir siempre."
-echo "  Escribe una por línea. Línea vacía para terminar."
-echo "  Ej: 'Los procesos siempre incluyen el actor responsable'"
+echo "  Reglas de negocio que la IA debe respetar en TODAS las operaciones"
+echo "  (ingest, query y lint). Son restricciones que no están escritas en"
+echo "  ningún documento pero que vos sabés que siempre deben cumplirse."
+echo ""
+echo "  Ej: 'Todo proceso debe indicar el rol responsable de ejecutarlo'"
 echo "      'Los roles siempre listan sus permisos asociados'"
+echo "      'Todo expediente tiene un número único de 8 dígitos'"
+echo ""
+echo "  Podés dejarlo vacío ahora y agregar convenciones en CLAUDE.md después."
+echo "  Escribí una por línea. Línea vacía para terminar."
 echo ""
 
 CONVENTIONS=()
@@ -92,11 +152,13 @@ done
 echo ""
 echo -e "${BLUE}Creando wiki en: ${WIKI_DIR}${NC}"
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+if [[ -d "${WIKI_DIR}" ]]; then
+    echo -e "${YELLOW}Advertencia: el directorio ${WIKI_DIR} ya existe.${NC}"
+    read -r -p "  ¿Continuar de todas formas? Puede sobreescribir archivos. [s/N]: " confirm
+    [[ "$confirm" =~ ^[sS]$ ]] || { echo "Cancelado."; exit 0; }
+fi
 
-mkdir -p "${WIKI_DIR}/raw"
-mkdir -p "${WIKI_DIR}/wiki"
-mkdir -p "${WIKI_DIR}/.claude/commands"
+mkdir -p "${WIKI_DIR}/raw" "${WIKI_DIR}/wiki" "${WIKI_DIR}/.claude/commands"
 
 touch "${WIKI_DIR}/raw/.gitkeep"
 
@@ -163,21 +225,36 @@ fi
 
 cp "${SCRIPT_DIR}/CLAUDE.md.template" "${WIKI_DIR}/CLAUDE.md"
 
-python3 - <<PYEOF
-with open("${WIKI_DIR}/CLAUDE.md", "r") as f:
+python3 - \
+    "${WIKI_DIR}/CLAUDE.md" \
+    "${WIKI_NAME}" \
+    "${WIKI_SLUG}" \
+    "${LANGUAGE}" \
+    "${CREATED_DATE}" \
+    "${ENTITIES_LIST}" \
+    "${PAGE_TYPES_LIST}" \
+    "${PAGE_TYPES_DETAIL}" \
+    "${DOMAIN_CONVENTIONS}" \
+<<'PYEOF'
+import sys
+
+path, wiki_name, wiki_slug, language, created_date, \
+    entities_list, page_types_list, page_types_detail, domain_conventions = sys.argv[1:]
+
+with open(path, "r") as f:
     content = f.read()
 
-content = content.replace("{{WIKI_NAME}}", """${WIKI_NAME}""")
-content = content.replace("{{WIKI_SLUG}}", """${WIKI_SLUG}""")
-content = content.replace("{{WIKI_ROOT}}", """${WIKI_SLUG}-wiki""")
-content = content.replace("{{LANGUAGE}}", """${LANGUAGE}""")
-content = content.replace("{{CREATED_DATE}}", """${CREATED_DATE}""")
-content = content.replace("{{ENTITIES_LIST}}", """${ENTITIES_LIST}""")
-content = content.replace("{{PAGE_TYPES_LIST}}", """${PAGE_TYPES_LIST}""")
-content = content.replace("{{PAGE_TYPES_DETAIL}}", """${PAGE_TYPES_DETAIL}""")
-content = content.replace("{{DOMAIN_CONVENTIONS}}", """${DOMAIN_CONVENTIONS}""")
+content = content.replace("{{WIKI_NAME}}", wiki_name)
+content = content.replace("{{WIKI_SLUG}}", wiki_slug)
+content = content.replace("{{WIKI_ROOT}}", wiki_slug + "-wiki")
+content = content.replace("{{LANGUAGE}}", language)
+content = content.replace("{{CREATED_DATE}}", created_date)
+content = content.replace("{{ENTITIES_LIST}}", entities_list)
+content = content.replace("{{PAGE_TYPES_LIST}}", page_types_list)
+content = content.replace("{{PAGE_TYPES_DETAIL}}", page_types_detail)
+content = content.replace("{{DOMAIN_CONVENTIONS}}", domain_conventions)
 
-with open("${WIKI_DIR}/CLAUDE.md", "w") as f:
+with open(path, "w") as f:
     f.write(content)
 PYEOF
 
@@ -237,7 +314,7 @@ EOF
 
 git init -q
 git add .
-git commit -q -m "chore: init wiki ${WIKI_NAME}"
+git commit -q -m "chore: init wiki ${WIKI_SLUG}"
 
 cd - > /dev/null
 
