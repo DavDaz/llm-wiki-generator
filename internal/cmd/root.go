@@ -53,26 +53,32 @@ func runRoot(_ *cobra.Command, _ []string) error {
 		return runErr
 	}
 
-	// Outside a wiki — show launcher menu first.
-	l := launcher.New()
-	p := tea.NewProgram(l, tea.WithAltScreen())
-	final, runErr := p.Run()
-	if runErr != nil {
-		return runErr
-	}
+	// Outside a wiki — loop so guide can return to the launcher.
+	for {
+		l := launcher.New()
+		p := tea.NewProgram(l, tea.WithAltScreen())
+		final, runErr := p.Run()
+		if runErr != nil {
+			return runErr
+		}
 
-	lm, ok := final.(launcher.Model)
-	if !ok {
-		return nil
-	}
+		lm, ok := final.(launcher.Model)
+		if !ok {
+			return nil
+		}
 
-	switch lm.Result() {
-	case launcher.ActionNew:
-		return runInitWizard()
-	case launcher.ActionGuide:
-		return runGuide(nil, nil)
+		switch lm.Result() {
+		case launcher.ActionNew:
+			return runInitWizard()
+		case launcher.ActionGuide:
+			if err := runGuide(nil, nil); err != nil {
+				return err
+			}
+			// guide closed → loop back to launcher
+		default:
+			return nil
+		}
 	}
-	return nil
 }
 
 // runInitWizard launches the wizard TUI and prints the result path.
