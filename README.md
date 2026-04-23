@@ -1,76 +1,135 @@
-# llm-wiki-generator
+# llm-wiki
 
-Generador de wikis de conocimiento mantenidos por IA, basado en el patrón LLM Wiki de Karpathy (abril 2026).
+CLI + TUI para crear y gestionar wikis de conocimiento mantenidos por IA, basado en el patrón LLM Wiki de Karpathy (abril 2026).
 
-**Un comando genera tu wiki. La IA lo mantiene. El conocimiento se acumula.**
+**Un comando crea tu wiki. La IA lo mantiene. El conocimiento se acumula.**
+
+---
+
+## Instalación
+
+### Homebrew (recomendado)
+
+```bash
+brew tap DavDaz/llm-wiki
+brew install llm-wiki
+```
+
+### Go install
+
+```bash
+go install github.com/DavDaz/llm-wiki-template/cmd/llm-wiki@latest
+```
+
+---
+
+## Crear un wiki nuevo
+
+```bash
+# TUI interactivo (recomendado)
+llm-wiki init
+
+# Modo headless con flags
+llm-wiki init --name "MIDES RENAB" --slug mides-renab --tools claude-code,opencode
+llm-wiki init --name "Legal Wiki" --slug legal-wiki --tools all --entities "usuario,rol,permiso"
+```
+
+El wizard TUI te guía por estos pasos:
+
+1. **Nombre y slug** — identificador técnico del wiki (kebab-case)
+2. **Idioma** — `es` o `en`
+3. **Tools** — Claude Code, OpenCode, Pi (o todos)
+4. **Entidades primarias** — los sustantivos centrales de tu dominio
+5. **Tipos de página** — taxonomía del wiki (pre-cargado con defaults editables)
+6. **Convenciones** — reglas de negocio que la IA debe aplicar siempre
+
+Al terminar tenés un directorio listo con `CLAUDE.md` / `AGENTS.md` configurado para tu dominio, estructura `raw/` y `wiki/`, y los skills `/wiki-ingest`, `/wiki-query`, `/wiki-lint`.
+
+---
+
+## Gestionar un wiki existente
+
+```bash
+# Abre el dashboard TUI (toggle de tools, migrate)
+cd tu-wiki/
+llm-wiki manage
+# o simplemente:
+llm-wiki
+```
+
+### Comandos headless
+
+```bash
+llm-wiki status                   # estado del wiki y tools instalados
+llm-wiki add-tool opencode        # habilitar un tool backend
+llm-wiki remove-tool pi           # deshabilitar un tool backend
+llm-wiki migrate                  # aplicar cambios del manifest al filesystem
+```
 
 ---
 
 ## Cómo funciona
 
-### Primera vez — Setup
+### Primera vez — Crear wiki
 
 ```mermaid
 flowchart TD
-    A([Tú]) --> B["git clone llm-wiki-generator"]
-    B --> C["./setup.sh"]
+    A([Tú]) --> B["llm-wiki init"]
 
-    C --> D{"Preguntas<br/>interactivas"}
-    D --> D1["📝 Nombre del wiki<br/>ej: MIDES RENAB"]
-    D --> D2["🏷️ Entidades primarias<br/>ej: usuario, rol, permiso"]
-    D --> D3["📄 Tipos de página<br/>ej: proceso, referencia"]
-    D --> D4["⚙️ Convenciones<br/>del dominio"]
+    B --> D{"Wizard TUI"}
+    D --> D1["📝 Nombre del wiki"]
+    D --> D2["🏷️ Entidades primarias"]
+    D --> D3["📄 Tipos de página"]
+    D --> D4["⚙️ Convenciones del dominio"]
 
-    D1 & D2 & D3 & D4 --> E["Elige CLI<br/>(Claude Code / OpenCode / Pi / Todos)"]
+    D1 & D2 & D3 & D4 --> E["Elige tools\n(Claude Code / OpenCode / Pi / Todos)"]
 
-    E --> F["Repo Git listo<br/>con estructura completa"]
+    E --> F["Wiki listo\ncon estructura completa"]
 
-    F --> G["📂 raw/<br/>Vacío — tus fuentes van aquí"]
-    F --> H["📂 wiki/<br/>index.md · log.md vacíos"]
-    F --> I["⚙️ commands/<br/>wiki-ingest · wiki-query · wiki-lint"]
-    F --> J["🧠 CLAUDE.md / AGENTS.md<br/>Cerebro del sistema"]
+    F --> G["📂 raw/\nVacío — tus fuentes van aquí"]
+    F --> H["📂 wiki/\nindex.md · log.md vacíos"]
+    F --> I["⚙️ commands/\nwiki-ingest · wiki-query · wiki-lint"]
+    F --> J["🧠 CLAUDE.md / AGENTS.md\nCerebro del sistema"]
 
     style A fill:#4f46e5,color:#fff
     style F fill:#059669,color:#fff
     style J fill:#d97706,color:#fff
 ```
 
----
-
 ### Flujo continuo — Agregar conocimiento y consultar
 
 ```mermaid
 flowchart TD
-    A([Tú]) --> B["Copias un documento<br/>a raw/"]
+    A([Tú]) --> B["Copiás un documento\na raw/"]
 
     B --> C["/wiki-ingest"]
 
     subgraph IA ["La IA hace esto automáticamente"]
-        C --> D["Lee el schema<br/>(reglas del dominio)"]
-        D --> E["Lee wiki/log.md<br/>(¿ya fue procesado?)"]
-        E --> F["Analiza el documento<br/>e identifica conceptos"]
-        F --> G{"¿Existe una página<br/>para este concepto?"}
-        G -- "Sí" --> H["Actualiza página<br/>existente"]
-        G -- "No" --> I["Crea página nueva<br/>con frontmatter"]
-        H & I --> J["Agrega wikilinks<br/>entre páginas relacionadas"]
+        C --> D["Lee el schema\n(reglas del dominio)"]
+        D --> E["Lee wiki/log.md\n(¿ya fue procesado?)"]
+        E --> F["Analiza el documento\ne identifica conceptos"]
+        F --> G{"¿Existe una página\npara este concepto?"}
+        G -- "Sí" --> H["Actualiza página\nexistente"]
+        G -- "No" --> I["Crea página nueva\ncon frontmatter"]
+        H & I --> J["Agrega wikilinks\nentre páginas relacionadas"]
         J --> K["Actualiza wiki/index.md"]
         K --> L["Registra en wiki/log.md"]
     end
 
     L --> M([Conocimiento compilado])
 
-    M --> N["/wiki-query<br/>¿Qué permisos tiene<br/>el rol Supervisor?"]
+    M --> N["/wiki-query\n¿Qué permisos tiene\nel rol Supervisor?"]
 
     subgraph QUERY ["La IA responde así"]
         N --> O["Lee wiki/index.md"]
-        O --> P["Abre solo las páginas<br/>relevantes (máx. 5)"]
-        P --> Q["Responde con citas<br/>pagina-fuente"]
+        O --> P["Abre solo las páginas\nrelevantes (máx. 5)"]
+        P --> Q["Responde con citas\npagina-fuente"]
     end
 
     Q --> R([Respuesta con referencias])
 
-    M --> S["/wiki-lint<br/>(periódico)"]
-    S --> T["Reporte wiki/lint-YYYY-MM-DD.md<br/>Errores · Advertencias · Info"]
+    M --> S["/wiki-lint\n(periódico)"]
+    S --> T["Reporte wiki/lint-YYYY-MM-DD.md\nErrores · Advertencias · Info"]
 
     style A fill:#4f46e5,color:#fff
     style M fill:#059669,color:#fff
@@ -79,77 +138,16 @@ flowchart TD
 
 ---
 
-## Cuándo usar este patrón
-
-✅ **Ideal para:**
-
-- Documentación de sistemas internos (hasta ~200 artículos)
-- Knowledge base de equipos pequeños (2-10 personas)
-- Procesos, roles, permisos, manuales operativos
-- Cualquier dominio donde el conocimiento se acumula con el tiempo
-
-⚠️ **Considera RAG si:**
-
-- Tienes miles de documentos que cambian constantemente
-- Necesitas búsqueda semántica sobre texto libre masivo
-
----
-
-## Estructura del generador
-
-```
-llm-wiki-generator/
-├── README.md                  ← este archivo
-├── setup.sh                   ← genera un wiki nuevo
-├── schema.md.template         ← schema del dominio (con placeholders)
-└── commands/
-    ├── wiki-ingest.md         ← skill: procesar fuentes nuevas
-    ├── wiki-query.md          ← skill: responder preguntas
-    └── wiki-lint.md           ← skill: auditar consistencia
-```
-
----
-
-## Crear un wiki nuevo
-
-```bash
-# 1. Clonar el generador
-git clone https://github.com/tu-usuario/llm-wiki-generator
-cd llm-wiki-generator
-
-# 2. Ejecutar setup
-chmod +x setup.sh
-./setup.sh
-```
-
-El script pregunta:
-
-- **Nombre del wiki** — ej: `MIDES RENAB`
-- **Slug** — ej: `mides-renab`
-- **Idioma** — ej: `es`
-- **Directorio destino** — ej: `../mides-renab-wiki`
-- **CLI a utilizar** — Claude Code, OpenCode, Pi, o todos
-- **Entidades primarias** — los "sustantivos" de tu dominio
-- **Tipos de página** — los tipos de contenido que manejas
-- **Convenciones específicas** — reglas particulares del dominio
-
-Al terminar tenés un repo Git listo con el schema configurado para tu dominio (`CLAUDE.md` para Claude Code, `AGENTS.md` para OpenCode o Pi, o ambos).
-
----
-
 ## Flujo de trabajo diario
 
 ### Agregar conocimiento nuevo
 
 ```bash
-# Copia tu documento al wiki
-cp mi-manual.pdf ruta-a-tu-wiki/raw/
+cp mi-manual.pdf tu-wiki/raw/
 
-# En Claude Code, OpenCode o Pi, ejecuta:
+# En Claude Code, OpenCode o Pi:
 /wiki-ingest
 ```
-
-La IA lee el documento, crea o actualiza páginas en `wiki/`, actualiza el índice y registra la operación en el log.
 
 ### Hacer preguntas
 
@@ -157,10 +155,7 @@ La IA lee el documento, crea o actualiza páginas en `wiki/`, actualiza el índi
 # En Claude Code, OpenCode o Pi:
 /wiki-query ¿qué permisos tiene el rol Supervisor?
 /wiki-query ¿cómo se registra un beneficiario nuevo?
-/wiki-query ¿cuáles son los grupos de usuario que existen?
 ```
-
-La IA lee `index.md`, abre las páginas relevantes y responde con referencias.
 
 ### Auditar el wiki
 
@@ -169,31 +164,25 @@ La IA lee `index.md`, abre las páginas relevantes y responde con referencias.
 /wiki-lint
 ```
 
-Genera un reporte en `wiki/lint-YYYY-MM-DD.md` con errores, advertencias e info.
-
 ---
 
-## Archivos clave
+## Archivos clave generados
 
 ### `CLAUDE.md` / `AGENTS.md`
 
-El archivo más importante — el schema del dominio. Define:
+El schema del dominio — el archivo más importante. Define entidades, tipos de página, reglas de nomenclatura y convenciones. La IA lo lee antes de cualquier operación.
 
-- Las entidades y tipos de página del dominio
-- Las reglas de nomenclatura (slugs)
-- Las reglas de granularidad (cuándo crear vs actualizar)
-- Las reglas exactas de cada operación (ingest, query, lint)
-- Las convenciones específicas del dominio
-
-La IA lo lee antes de cualquier operación. Se llama `CLAUDE.md` si usás Claude Code, `AGENTS.md` si usás OpenCode o Pi. Si el dominio evoluciona, se actualiza aquí y se corre `/wiki-lint` para detectar páginas que ya no cumplen las nuevas reglas.
+- `CLAUDE.md` si usás Claude Code
+- `AGENTS.md` si usás OpenCode o Pi
+- Ambos si usás múltiples tools
 
 ### `wiki/index.md`
 
-Catálogo central. Una línea por página. La IA lo lee primero en cada query para saber qué existe antes de abrir páginas individuales.
+Catálogo central. Una línea por página. La IA lo lee primero en cada query.
 
 ### `wiki/log.md`
 
-Historial append-only de todas las operaciones. Nunca se modifica, solo se le agrega al final. Sirve para saber qué fuentes ya fueron procesadas.
+Historial append-only de todas las operaciones. Sirve para saber qué fuentes ya fueron procesadas.
 
 ---
 
@@ -215,12 +204,10 @@ actualizado: 2026-04-21
 ## Precondiciones
 
 - El solicitante debe tener rol [[rol-administrador]]
-- El usuario a crear no debe existir en [[sistema-renab]]
 
 ## Pasos
 
-1. Ingresar al módulo de Gestión de Usuarios
-2. ...
+1. ...
 
 ## Ver también
 
@@ -230,20 +217,16 @@ actualizado: 2026-04-21
 
 ---
 
-## Evolucionar el schema
+## Cuándo usar este patrón
 
-Cuando el dominio cambia (nuevo tipo de página, nueva convención):
+✅ **Ideal para:**
+- Documentación de sistemas internos (hasta ~200 artículos)
+- Knowledge base de equipos pequeños (2-10 personas)
+- Procesos, roles, permisos, manuales operativos
 
-1. Editar `CLAUDE.md` o `AGENTS.md` en la sección correspondiente
-2. Agregar una fila al historial de cambios al final del archivo
-3. Correr `/wiki-lint` — detecta qué páginas existentes ya no cumplen las nuevas reglas
-4. Correr `/wiki-ingest` si hay fuentes pendientes
-
----
-
-## Escalar más allá de ~200 páginas
-
-Cuando el índice plano se vuelve lento, agregar [QMD](https://qmd.ai) como capa de búsqueda híbrida (BM25 + vector). Los skills ya están preparados para esta transición — solo actualizar la sección de query en el schema del dominio.
+⚠️ **Considerá RAG si:**
+- Tenés miles de documentos que cambian constantemente
+- Necesitás búsqueda semántica sobre texto libre masivo
 
 ---
 
