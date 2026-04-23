@@ -19,15 +19,29 @@ const (
 	ActionAborted       // user cancelled
 )
 
-type Model struct {
-	form   *huh.Form
+// values holds mutable form state behind a pointer so it survives
+// Bubbletea's copy semantics when the Model is passed by value.
+type values struct {
 	choice string
-	done   bool
+}
+
+type Model struct {
+	form    *huh.Form
+	vals    *values // pointer — valid across Bubbletea copies
+	aborted bool
+	done    bool
 }
 
 func New() Model {
-	m := Model{choice: "new"}
-	m.form = huh.NewForm(
+	v := &values{choice: "new"}
+	return Model{
+		vals: v,
+		form: buildForm(v),
+	}
+}
+
+func buildForm(v *values) *huh.Form {
+	return huh.NewForm(
 		huh.NewGroup(
 			huh.NewSelect[string]().
 				Title("llm-wiki").
@@ -36,10 +50,9 @@ func New() Model {
 					huh.NewOption("Create a new wiki", "new"),
 					huh.NewOption("Read the guide", "guide"),
 				).
-				Value(&m.choice),
+				Value(&v.choice),
 		),
 	).WithTheme(huh.ThemeCatppuccin())
-	return m
 }
 
 func (m Model) Init() tea.Cmd {
@@ -48,8 +61,8 @@ func (m Model) Init() tea.Cmd {
 
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	if key, ok := msg.(tea.KeyMsg); ok && key.String() == "ctrl+c" {
+		m.aborted = true
 		m.done = true
-		m.choice = "abort"
 		return m, tea.Quit
 	}
 
@@ -58,7 +71,12 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.form = f
 	}
 
-	if m.form.State == huh.StateCompleted || m.form.State == huh.StateAborted {
+	if m.form.State == huh.StateCompleted {
+		m.done = true
+		return m, tea.Quit
+	}
+	if m.form.State == huh.StateAborted {
+		m.aborted = true
 		m.done = true
 		return m, tea.Quit
 	}
@@ -75,10 +93,10 @@ func (m Model) View() string {
 
 // Result returns the action the user selected.
 func (m Model) Result() Action {
-	if m.form.State == huh.StateAborted || m.choice == "abort" {
+	if m.aborted {
 		return ActionAborted
 	}
-	switch m.choice {
+	switch m.vals.choice {
 	case "new":
 		return ActionNew
 	case "guide":
