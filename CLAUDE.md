@@ -7,14 +7,18 @@ Generador de wikis de conocimiento mantenidos por IA. Un binario Go (`llm-wiki`)
 ## Cómo publicar una nueva release
 
 ```bash
-git tag v0.X.0
-git push origin v0.X.0
+make release VERSION=v0.3.0
 ```
 
-GitHub Actions corre GoReleaser automáticamente:
+Valida formato semver, tagea y pushea. GitHub Actions corre GoReleaser automáticamente (~1m30s):
 - Compila binarios para darwin/linux (amd64 + arm64) y windows
 - Publica el release en GitHub con los assets
 - Actualiza la fórmula Homebrew en `DavDaz/homebrew-llm-wiki`
+
+**El usuario actualiza con:**
+```bash
+brew update && brew upgrade llm-wiki
+```
 
 ## Cómo instalar (usuario final)
 
