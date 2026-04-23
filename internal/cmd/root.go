@@ -9,6 +9,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/DavDaz/llm-wiki-generator/internal/tui/dashboard"
+	"github.com/DavDaz/llm-wiki-generator/internal/tui/launcher"
 	"github.com/DavDaz/llm-wiki-generator/internal/tui/wizard"
 	"github.com/DavDaz/llm-wiki-generator/internal/version"
 )
@@ -42,7 +43,7 @@ var versionCmd = &cobra.Command{
 	},
 }
 
-// runRoot opens the dashboard TUI if inside a wiki, otherwise the init wizard.
+// runRoot opens the dashboard if inside a wiki, otherwise shows the launcher menu.
 func runRoot(_ *cobra.Command, _ []string) error {
 	m, wikiRoot, err := loadManifestFromCwd()
 	if err == nil {
@@ -52,12 +53,36 @@ func runRoot(_ *cobra.Command, _ []string) error {
 		return runErr
 	}
 
-	parentDir, _ := os.Getwd()
-	wiz := wizard.New(parentDir)
-	p := tea.NewProgram(wiz, tea.WithAltScreen())
+	// Outside a wiki — show launcher menu first.
+	l := launcher.New()
+	p := tea.NewProgram(l, tea.WithAltScreen())
 	final, runErr := p.Run()
 	if runErr != nil {
 		return runErr
+	}
+
+	lm, ok := final.(launcher.Model)
+	if !ok {
+		return nil
+	}
+
+	switch lm.Result() {
+	case launcher.ActionNew:
+		return runInitWizard()
+	case launcher.ActionGuide:
+		return runGuide(nil, nil)
+	}
+	return nil
+}
+
+// runInitWizard launches the wizard TUI and prints the result path.
+func runInitWizard() error {
+	parentDir, _ := os.Getwd()
+	wiz := wizard.New(parentDir)
+	p := tea.NewProgram(wiz, tea.WithAltScreen())
+	final, err := p.Run()
+	if err != nil {
+		return err
 	}
 	if wm, ok := final.(wizard.Model); ok {
 		r := wm.GetResult()

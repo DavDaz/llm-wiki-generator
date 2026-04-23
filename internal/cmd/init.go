@@ -2,14 +2,11 @@ package cmd
 
 import (
 	"fmt"
-	"os"
 	"strings"
 
-	tea "github.com/charmbracelet/bubbletea"
 	"github.com/spf13/cobra"
 
 	"github.com/DavDaz/llm-wiki-generator/internal/generator"
-	"github.com/DavDaz/llm-wiki-generator/internal/tui/wizard"
 )
 
 var initCmd = &cobra.Command{
@@ -49,23 +46,7 @@ func init() {
 func runInit(cmd *cobra.Command, _ []string) error {
 	// no required flags provided → open TUI wizard
 	if initFlags.name == "" && initFlags.slug == "" {
-		parentDir := initFlags.parentDir
-		if parentDir == "" {
-			parentDir, _ = os.Getwd()
-		}
-		m := wizard.New(parentDir)
-		p := tea.NewProgram(m, tea.WithAltScreen())
-		final, err := p.Run()
-		if err != nil {
-			return err
-		}
-		if wm, ok := final.(wizard.Model); ok {
-			r := wm.GetResult()
-			if !r.Aborted {
-				fmt.Fprintf(cmd.OutOrStdout(), "✓ Wiki created: %s\n", r.WikiRoot)
-			}
-		}
-		return nil
+		return runInitWizard()
 	}
 
 	// headless mode — both --name and --slug required
