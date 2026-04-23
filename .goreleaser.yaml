@@ -1,0 +1,63 @@
+version: 2
+
+project_name: llm-wiki
+
+before:
+  hooks:
+    - go mod tidy
+
+builds:
+  - id: llm-wiki
+    main: ./cmd/llm-wiki
+    binary: llm-wiki
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - darwin
+      - windows
+    goarch:
+      - amd64
+      - arm64
+    ignore:
+      - goos: windows
+        goarch: arm64
+    ldflags:
+      - -s -w
+      - -X github.com/DavDaz/llm-wiki-template/internal/version.Version={{.Version}}
+
+archives:
+  - id: llm-wiki
+    builds:
+      - llm-wiki
+    name_template: "{{ .ProjectName }}_{{ .Os }}_{{ .Arch }}"
+    format_overrides:
+      - goos: windows
+        format: zip
+
+checksum:
+  name_template: "checksums.txt"
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - "^docs:"
+      - "^test:"
+      - "^chore:"
+      - Merge pull request
+      - Merge branch
+
+brews:
+  - name: llm-wiki
+    repository:
+      owner: DavDaz
+      name: homebrew-llm-wiki
+      token: "{{ .Env.HOMEBREW_TAP_TOKEN }}"
+    homepage: "https://github.com/DavDaz/llm-wiki-generator"
+    description: "CLI + TUI for creating and managing LLM wikis"
+    license: "MIT"
+    install: |
+      bin.install "llm-wiki"
+    test: |
+      system "#{bin}/llm-wiki version"
