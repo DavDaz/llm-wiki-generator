@@ -41,7 +41,7 @@ func Init(cfg InitConfig) (wikiRoot string, err error) {
 		}
 	}
 
-	wikiRoot = filepath.Join(cfg.ParentDir, cfg.Slug+"-wiki")
+	wikiRoot = filepath.Join(cfg.ParentDir, cfg.Slug)
 	if _, err := os.Stat(wikiRoot); err == nil {
 		return "", fmt.Errorf("directory already exists: %s", wikiRoot)
 	}

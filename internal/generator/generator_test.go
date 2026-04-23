@@ -34,7 +34,7 @@ func TestInit_ClaudeCodeOnly(t *testing.T) {
 
 	wikiRoot, err := generator.Init(cfg)
 	require.NoError(t, err)
-	assert.Equal(t, filepath.Join(dir, "legal-wiki-wiki"), wikiRoot)
+	assert.Equal(t, filepath.Join(dir, "legal-wiki"), wikiRoot)
 
 	// Core structure.
 	assertExists(t, wikiRoot)
@@ -90,7 +90,7 @@ func TestInit_AllTools(t *testing.T) {
 	_, err := generator.Init(cfg)
 	require.NoError(t, err)
 
-	wikiRoot := filepath.Join(dir, "legal-wiki-wiki")
+	wikiRoot := filepath.Join(dir, "legal-wiki")
 	assertExists(t, filepath.Join(wikiRoot, "CLAUDE.md"))
 	assertExists(t, filepath.Join(wikiRoot, "AGENTS.md"))
 	assertExists(t, filepath.Join(wikiRoot, ".claude", "commands", "wiki-ingest.md"))

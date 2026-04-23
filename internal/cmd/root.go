@@ -3,9 +3,13 @@ package cmd
 
 import (
 	"fmt"
+	"os"
 
+	tea "github.com/charmbracelet/bubbletea"
 	"github.com/spf13/cobra"
 
+	"github.com/DavDaz/llm-wiki-template/internal/tui/dashboard"
+	"github.com/DavDaz/llm-wiki-template/internal/tui/wizard"
 	"github.com/DavDaz/llm-wiki-template/internal/version"
 )
 
@@ -16,8 +20,8 @@ var rootCmd = &cobra.Command{
 
 It replaces the legacy setup.sh with a versioned, distributable binary
 that supports Claude Code, OpenCode, and Pi as AI tool backends.`,
-	// Default: no-arg invocation will open TUI (wired in Phase 2).
 	SilenceUsage: true,
+	RunE:         runRoot,
 }
 
 // Execute is the entry point called by main.
@@ -35,4 +39,30 @@ var versionCmd = &cobra.Command{
 	Run: func(_ *cobra.Command, _ []string) {
 		fmt.Println(version.Version)
 	},
+}
+
+// runRoot opens the dashboard TUI if inside a wiki, otherwise the init wizard.
+func runRoot(_ *cobra.Command, _ []string) error {
+	m, wikiRoot, err := loadManifestFromCwd()
+	if err == nil {
+		d := dashboard.New(m, wikiRoot)
+		p := tea.NewProgram(d, tea.WithAltScreen())
+		_, runErr := p.Run()
+		return runErr
+	}
+
+	parentDir, _ := os.Getwd()
+	wiz := wizard.New(parentDir)
+	p := tea.NewProgram(wiz, tea.WithAltScreen())
+	final, runErr := p.Run()
+	if runErr != nil {
+		return runErr
+	}
+	if wm, ok := final.(wizard.Model); ok {
+		r := wm.GetResult()
+		if !r.Aborted {
+			fmt.Printf("✓ Wiki created: %s\n", r.WikiRoot)
+		}
+	}
+	return nil
 }

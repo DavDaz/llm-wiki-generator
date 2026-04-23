@@ -2,17 +2,21 @@ package cmd
 
 import (
 	"fmt"
+	"os"
 	"strings"
 
+	tea "github.com/charmbracelet/bubbletea"
 	"github.com/spf13/cobra"
 
 	"github.com/DavDaz/llm-wiki-template/internal/generator"
+	"github.com/DavDaz/llm-wiki-template/internal/tui/wizard"
 )
 
 var initCmd = &cobra.Command{
 	Use:   "init",
-	Short: "Create a new wiki (headless mode — use flags or run without flags for TUI wizard)",
-	Example: `  llm-wiki init --name "Legal Wiki" --slug legal-wiki --tools claude-code,opencode
+	Short: "Create a new wiki (TUI wizard or headless with flags)",
+	Example: `  llm-wiki init
+  llm-wiki init --name "Legal Wiki" --slug legal-wiki --tools claude-code,opencode
   llm-wiki init --name "RENAB" --slug renab --tools all --entities "usuario,rol,permiso"`,
 	RunE: runInit,
 }
@@ -30,8 +34,8 @@ var initFlags struct {
 
 func init() {
 	f := initCmd.Flags()
-	f.StringVar(&initFlags.name, "name", "", "Wiki name (required)")
-	f.StringVar(&initFlags.slug, "slug", "", "Wiki slug — kebab-case identifier (required)")
+	f.StringVar(&initFlags.name, "name", "", "Wiki name")
+	f.StringVar(&initFlags.slug, "slug", "", "Wiki slug — kebab-case identifier")
 	f.StringVar(&initFlags.language, "lang", "es", "Language code (default: es)")
 	f.StringVar(&initFlags.tools, "tools", "claude-code", "Comma-separated tools: claude-code,opencode,pi or 'all'")
 	f.StringVar(&initFlags.entities, "entities", "", "Comma-separated primary entities (e.g. usuario,rol)")
@@ -43,8 +47,30 @@ func init() {
 }
 
 func runInit(cmd *cobra.Command, _ []string) error {
+	// no required flags provided → open TUI wizard
+	if initFlags.name == "" && initFlags.slug == "" {
+		parentDir := initFlags.parentDir
+		if parentDir == "" {
+			parentDir, _ = os.Getwd()
+		}
+		m := wizard.New(parentDir)
+		p := tea.NewProgram(m, tea.WithAltScreen())
+		final, err := p.Run()
+		if err != nil {
+			return err
+		}
+		if wm, ok := final.(wizard.Model); ok {
+			r := wm.GetResult()
+			if !r.Aborted {
+				fmt.Fprintf(cmd.OutOrStdout(), "✓ Wiki created: %s\n", r.WikiRoot)
+			}
+		}
+		return nil
+	}
+
+	// headless mode — both --name and --slug required
 	if initFlags.name == "" || initFlags.slug == "" {
-		return fmt.Errorf("--name and --slug are required (or run 'llm-wiki init' without flags for interactive TUI)")
+		return fmt.Errorf("--name and --slug are both required in headless mode")
 	}
 
 	toolNames := parseCSV(initFlags.tools)
