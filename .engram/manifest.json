@@ -24,6 +24,14 @@
       "sessions": 5,
       "memories": 25,
       "prompts": 23
+    },
+    {
+      "id": "c88918d8",
+      "created_by": "dadiaz",
+      "created_at": "2026-04-27T21:05:33Z",
+      "sessions": 10,
+      "memories": 22,
+      "prompts": 6
     }
   ]
 }
