@@ -11,7 +11,7 @@ import (
 	"github.com/DavDaz/llm-wiki-generator/internal/manifest"
 )
 
-func TestRunRootInsideWikiKeepsNoArgToolsDashboardRouting(t *testing.T) {
+func TestRunRootInsideWikiOpensManageRoot(t *testing.T) {
 	originalWD, err := os.Getwd()
 	require.NoError(t, err)
 	t.Cleanup(func() {
@@ -39,5 +39,36 @@ func TestRunRootInsideWikiKeepsNoArgToolsDashboardRouting(t *testing.T) {
 	err = runRoot(nil, nil)
 	require.NoError(t, err)
 	require.Equal(t, 1, called)
-	require.Equal(t, "*dashboard.Model", modelType)
+	require.Equal(t, "*dashboard.rootModel", modelType)
+}
+
+func TestRunManageUsesSharedProgramRunner(t *testing.T) {
+	originalWD, err := os.Getwd()
+	require.NoError(t, err)
+	t.Cleanup(func() {
+		require.NoError(t, os.Chdir(originalWD))
+	})
+
+	wikiRoot := t.TempDir()
+	m := manifest.New("Test Wiki", "test-wiki", "es")
+	require.NoError(t, m.Save(wikiRoot))
+	require.NoError(t, os.Chdir(wikiRoot))
+
+	originalRunProgram := runProgram
+	t.Cleanup(func() {
+		runProgram = originalRunProgram
+	})
+
+	called := 0
+	modelType := ""
+	runProgram = func(model tea.Model, _ ...tea.ProgramOption) (tea.Model, error) {
+		called++
+		modelType = fmt.Sprintf("%T", model)
+		return model, nil
+	}
+
+	err = runManage(nil, nil)
+	require.NoError(t, err)
+	require.Equal(t, 1, called)
+	require.Equal(t, "*dashboard.rootModel", modelType)
 }

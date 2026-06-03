@@ -13,10 +13,11 @@ import (
 type Action int
 
 const (
-	ActionNone   Action = iota
-	ActionNew           // open the init wizard
-	ActionGuide         // print the guide
-	ActionAborted       // user cancelled
+	ActionNone    Action = iota
+	ActionNew            // open the init wizard
+	ActionGuide          // print the guide
+	ActionExit           // exit the launcher
+	ActionAborted        // user cancelled
 )
 
 // values holds mutable form state behind a pointer so it survives
@@ -49,6 +50,7 @@ func buildForm(v *values) *huh.Form {
 				Options(
 					huh.NewOption("Create a new wiki", "new"),
 					huh.NewOption("Read the guide", "guide"),
+					huh.NewOption("Exit", "exit"),
 				).
 				Value(&v.choice),
 		),
@@ -60,10 +62,17 @@ func (m Model) Init() tea.Cmd {
 }
 
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	if key, ok := msg.(tea.KeyMsg); ok && key.String() == "ctrl+c" {
-		m.aborted = true
-		m.done = true
-		return m, tea.Quit
+	if key, ok := msg.(tea.KeyMsg); ok {
+		switch key.String() {
+		case "ctrl+c":
+			m.aborted = true
+			m.done = true
+			return m, tea.Quit
+		case "esc", "q":
+			m.vals.choice = "exit"
+			m.done = true
+			return m, tea.Quit
+		}
 	}
 
 	form, cmd := m.form.Update(msg)
@@ -101,6 +110,8 @@ func (m Model) Result() Action {
 		return ActionNew
 	case "guide":
 		return ActionGuide
+	case "exit":
+		return ActionExit
 	}
 	return ActionNone
 }

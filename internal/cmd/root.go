@@ -50,10 +50,10 @@ var versionCmd = &cobra.Command{
 
 // runRoot opens the dashboard if inside a wiki, otherwise shows the launcher menu.
 func runRoot(_ *cobra.Command, _ []string) error {
-	m, wikiRoot, err := loadManifestFromCwd()
+	_, wikiRoot, err := loadManifestFromCwd()
 	if err == nil {
-		d := dashboard.NewTools(m, wikiRoot)
-		_, runErr := runProgram(d, tea.WithAltScreen())
+		root := dashboard.NewRoot(wikiRoot)
+		_, runErr := runProgram(root, tea.WithAltScreen())
 		return runErr
 	}
 

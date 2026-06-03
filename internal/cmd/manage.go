@@ -23,7 +23,6 @@ func runManage(_ *cobra.Command, _ []string) error {
 		return err
 	}
 	root := dashboard.NewRoot(wikiRoot)
-	p := tea.NewProgram(root, tea.WithAltScreen())
-	_, err = p.Run()
-	return err
+	_, runErr := runProgram(root, tea.WithAltScreen())
+	return runErr
 }

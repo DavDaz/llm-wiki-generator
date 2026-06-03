@@ -57,15 +57,13 @@ llm-wiki manage
 llm-wiki
 ```
 
-`llm-wiki manage` muestra un menú raíz con:
+`llm-wiki` dentro de un wiki y `llm-wiki manage` muestran un menú raíz con:
 - Tools backends
 - Drafts (`status: borrador`)
 - Published (`status: vigente`)
 - Deprecated (`status: deprecado`)
 
 En cada bucket de páginas podés cambiar status con opciones contextuales: nunca aparece el status actual, siempre aparece `cancel`.
-
-> Nota: el flujo sin argumentos (`llm-wiki`) mantiene su routing actual y no forma parte de este cambio.
 
 ### Comandos headless
 
