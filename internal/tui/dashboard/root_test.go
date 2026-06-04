@@ -16,6 +16,7 @@ func TestRootMenuRendersHeader(t *testing.T) {
 
 func TestRootMenuOptionsExactOrderAndLabels(t *testing.T) {
 	require.Equal(t, []rootMenuOption{
+		{label: "New raw note", value: "new-raw-note"},
 		{label: "Tools backends", value: "tools"},
 		{label: "Drafts (status: borrador)", value: "drafts"},
 		{label: "Published (status: vigente)", value: "published"},
@@ -44,16 +45,18 @@ func TestRootNavigationRoundTrip(t *testing.T) {
 	for _, tc := range []struct {
 		name           string
 		downPresses    int
+		expectRawNote  bool
 		expectPages    bool
 		expectedFilter string
 	}{
-		{name: "tools", downPresses: 0, expectPages: false},
-		{name: "drafts", downPresses: 1, expectPages: true, expectedFilter: "borrador"},
-		{name: "published", downPresses: 2, expectPages: true, expectedFilter: "vigente"},
-		{name: "deprecated", downPresses: 3, expectPages: true, expectedFilter: "deprecado"},
+		{name: "new raw note", downPresses: 0, expectRawNote: true},
+		{name: "tools", downPresses: 1},
+		{name: "drafts", downPresses: 2, expectPages: true, expectedFilter: "borrador"},
+		{name: "published", downPresses: 3, expectPages: true, expectedFilter: "vigente"},
+		{name: "deprecated", downPresses: 4, expectPages: true, expectedFilter: "deprecado"},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
-			root.vals.choice = "tools"
+			root.vals.choice = "new-raw-note"
 			root.form = newRootForm(root.vals)
 			root.state = stateMenu
 			root.active = nil
@@ -64,6 +67,12 @@ func TestRootNavigationRoundTrip(t *testing.T) {
 
 			root = updateAndDrain(root, keyMsg("enter")).(*rootModel)
 			require.Equal(t, stateSubView, root.state)
+
+			if tc.expectRawNote {
+				active, ok := root.active.(*rawNoteModel)
+				require.True(t, ok)
+				require.Equal(t, root.rawDir, active.rawDir)
+			}
 
 			if tc.expectPages {
 				active, ok := root.active.(*pagesModel)

@@ -29,6 +29,7 @@ type rootMenuOption struct {
 }
 
 var rootMenuOptions = []rootMenuOption{
+	{label: "New raw note", value: "new-raw-note"},
 	{label: "Tools backends", value: "tools"},
 	{label: "Drafts (status: borrador)", value: "drafts"},
 	{label: "Published (status: vigente)", value: "published"},
@@ -39,6 +40,7 @@ var rootMenuOptions = []rootMenuOption{
 type rootModel struct {
 	wikiRoot string
 	wikiDir  string
+	rawDir   string
 	state    rootState
 	form     *huh.Form
 	vals     *rootValues
@@ -52,6 +54,7 @@ func NewRoot(wikiRoot string) tea.Model {
 	return &rootModel{
 		wikiRoot: wikiRoot,
 		wikiDir:  filepath.Join(wikiRoot, "wiki"),
+		rawDir:   filepath.Join(wikiRoot, "raw"),
 		state:    stateMenu,
 		form:     newRootForm(v),
 		vals:     v,
@@ -106,6 +109,10 @@ func (m *rootModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		if m.form.State == huh.StateCompleted {
 			switch m.vals.choice {
+			case "new-raw-note":
+				m.active = NewRawNoteView(m.rawDir)
+				m.state = stateSubView
+				return m, m.active.Init()
 			case "tools":
 				mf, err := manifest.Load(m.wikiRoot)
 				if err != nil {
