@@ -199,12 +199,14 @@ Revisar y reportar con severidad:
 - Slugs que no siguen las reglas de nomenclatura
 - `[[wikilinks]]` rotos (apuntan a páginas que no existen)
 - Páginas con `status: deprecado` sin `ver_sucesor`
+- Contradicciones entre páginas o contra evidencia más reciente en `raw/`, `wiki/log.md` o `wiki/sources.json`
 
 **🟡 Advertencia (debería corregirse):**
-- Páginas con `confianza: baja` sin nota de advertencia visible
-- Páginas con `status: borrador` de más de 30 días sin revisión
-- Páginas huérfanas (no referenciadas por ninguna otra página)
-- Conceptos mencionados en múltiples páginas sin página propia
+- Claims potencialmente desactualizados frente a fechas, fuentes nuevas o cambios ya registrados
+- Entidades o conceptos inconsistentes entre páginas relacionadas
+- Cobertura de enlaces insuficiente (páginas huérfanas, islas temáticas o conceptos sin `[[wikilinks]]` útiles)
+- Citas o trazabilidad de fuentes insuficientes para afirmaciones relevantes
+- Research gaps o preguntas abiertas sin seguimiento claro
 
 **🔵 Info (para revisar):**
 - Páginas largas (>500 palabras) que podrían dividirse
@@ -212,6 +214,8 @@ Revisar y reportar con severidad:
 - Fuentes en `raw/` sin entrada en `log.md`
 
 Guardar reporte en: `wiki/lint-YYYY-MM-DD.md`
+
+El resultado del lint es siempre un reporte para inspección humana o seguimiento manual: nunca modificar páginas automáticamente, nunca reparar enlaces automáticamente y nunca convertir `/wiki-lint` en ingest determinístico, query automático o RAG.
 
 ---
 

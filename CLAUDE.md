@@ -2,7 +2,7 @@
 
 ## Qué es esto
 
-Generador de wikis de conocimiento mantenidos por IA. Un binario Go (`llm-wiki`) reemplaza el viejo `setup.sh`. Distribuido via Homebrew.
+Generador de workspaces para wikis de conocimiento mantenidos por IA. `llm-wiki` prepara la estructura, instala las instrucciones por backend y migra cambios del manifest; el agente ejecuta `/wiki-ingest`, `/wiki-query` y `/wiki-lint`.
 
 ## Cómo publicar una nueva release
 
@@ -10,10 +10,12 @@ Generador de wikis de conocimiento mantenidos por IA. Un binario Go (`llm-wiki`)
 make release VERSION=v0.3.0
 ```
 
-Valida formato semver, tagea y pushea. GitHub Actions corre GoReleaser automáticamente (~1m30s):
-- Compila binarios para darwin/linux (amd64 + arm64) y windows
-- Publica el release en GitHub con los assets
-- Actualiza la fórmula Homebrew en `DavDaz/homebrew-llm-wiki`
+Hoy `make release` valida formato semver, crea el tag y lo pushea. El empaquetado de releases vive en `.goreleaser.yaml`.
+
+Estado actual a tener en cuenta:
+- No hay un workflow de CI/preflight versionado en `.github/workflows/` dentro de este repo.
+- Cualquier guardrail previo al release debe agregarse explícitamente en el repo; no asumirlo.
+- El tap de Homebrew esperado sigue siendo `DavDaz/homebrew-llm-wiki`.
 
 **El usuario actualiza con:**
 ```bash
@@ -54,21 +56,24 @@ internal/
   cmd/                 → comandos Cobra (init, manage, status, add-tool, remove-tool, migrate)
   generator/           → crea y migra wikis en el filesystem
   manifest/            → lee/escribe wiki.toml
-  templates/           → archivos embebidos (CLAUDE.md, AGENTS.md, commands/)
+  templates/           → render + archivos embebidos
   tools/               → registry de tool backends (claude-code, opencode, pi)
   tui/
     wizard/            → form TUI para llm-wiki init (huh + bubbletea)
     dashboard/         → panel de gestión para llm-wiki manage (bubbletea)
     styles/            → estilos Lipgloss compartidos
   version/             → versión inyectada por GoReleaser via ldflags
-assets/                → GUIDE.md y templates fuente (referencia)
+internal/templates/assets/
+  GUIDE.md             → guía base generada para el wiki
+  schema.md.template   → schema/instrucciones compartidas
+  commands/            → prompts fuente para wiki-ingest/query/lint
 .goreleaser.yaml       → config de build y distribución
-.github/workflows/     → release.yml dispara GoReleaser en push de tags v*
 ```
 
 ## Comandos disponibles
 
 ```bash
+llm-wiki                               # launcher fuera del wiki; dashboard dentro del wiki
 llm-wiki init                          # wizard TUI para crear wiki nuevo
 llm-wiki init --name X --slug x        # modo headless
 llm-wiki manage                        # dashboard TUI para gestionar wiki

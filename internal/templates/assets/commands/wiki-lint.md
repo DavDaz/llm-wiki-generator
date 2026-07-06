@@ -31,7 +31,7 @@ Leer el schema del dominio (`CLAUDE.md` o `AGENTS.md`, el que exista en el proye
 Listar todos los archivos en `wiki/` (excepto `index.md`, `log.md`, y reportes de lint anteriores).
 Leer `wiki/index.md` para comparar contra archivos reales.
 
-### Paso 2 — Ejecutar los 11 checks
+### Paso 2 — Ejecutar los checks semánticos y estructurales
 
 **Checks de Error 🔴** (bloquean confiabilidad del wiki):
 
@@ -40,18 +40,20 @@ Leer `wiki/index.md` para comparar contra archivos reales.
 3. **Wikilinks rotos** — `[[referencias]]` a páginas que no existen en `wiki/`
 4. **Deprecados sin sucesor** — páginas con `status: deprecado` sin campo `ver_sucesor`
 5. **Tipo inválido** — páginas con un `tipo` que no está definido en el schema
+6. **Contradicciones entre páginas o contra fuentes** — afirmaciones incompatibles entre páginas del wiki o frente a evidencia más reciente en `raw/`, `wiki/log.md` o `wiki/sources.json`
 
 **Checks de Advertencia 🟡** (degradan calidad del wiki):
 
-6. **Borradores viejos** — páginas con `status: borrador` creadas hace más de 30 días sin revisión
-7. **Confianza baja sin nota** — páginas con `confianza: baja` sin el bloque de advertencia visible
-8. **Páginas huérfanas** — páginas que no son referenciadas por ninguna otra página ni por `index.md`
-9. **Conceptos sin página** — términos que aparecen como `[[wikilink]]` en múltiples páginas pero no tienen página propia
+7. **Claims potencialmente desactualizados** — páginas que parecen stale frente a fechas, fuentes nuevas o cambios ya registrados en el log
+8. **Entidades o conceptos inconsistentes** — nombres, definiciones o límites distintos para la misma entidad/concepto en páginas relacionadas
+9. **Cobertura de enlaces insuficiente** — páginas huérfanas, islas temáticas o conceptos mencionados repetidamente sin `[[wikilinks]]` útiles
+10. **Citas o trazabilidad de fuentes insuficientes** — afirmaciones relevantes sin respaldo claro en `fuentes`, `raw/` o el historial del wiki
+11. **Research gaps o preguntas abiertas sin seguimiento** — dudas, supuestos o zonas de baja confianza que deberían derivar en revisión humana o nuevas fuentes
 
 **Checks de Info 🔵** (oportunidades de mejora):
 
-10. **Páginas largas** — páginas con más de 500 palabras que podrían dividirse
-11. **Fuentes sin procesar** — archivos en `raw/` que no tienen entrada en `wiki/log.md`
+12. **Páginas largas** — páginas con más de 500 palabras que podrían dividirse
+13. **Fuentes sin procesar** — archivos en `raw/` que no tienen entrada en `wiki/log.md`
 
 ### Paso 3 — Generar reporte
 Guardar en `wiki/lint-YYYY-MM-DD.md`:
@@ -82,15 +84,18 @@ actualizado: YYYY-MM-DD
 ### Wikilinks rotos
 - `wiki/crear-usuario.md` → [[rol-supervisor]] (no existe)
 
+### Contradicciones entre páginas o contra fuentes
+- `wiki/politica-acceso.md` afirma revisión anual, pero `raw/manual-v4.pdf` indica revisión trimestral
+
 ---
 
 ## 🟡 Advertencias (Y)
 
-### Borradores viejos (+30 días)
-- `wiki/politica-acceso.md` — borrador desde 2026-03-01
+### Claims potencialmente desactualizados
+- `wiki/politica-acceso.md` — no refleja cambios registrados en `wiki/log.md` desde 2026-03-01
 
-### Páginas huérfanas
-- `wiki/configuracion-smtp.md` — no referenciada por ninguna página
+### Entidades o conceptos inconsistentes
+- `wiki/roles.md` y `wiki/supervisor.md` describen responsabilidades incompatibles para "Supervisor"
 
 ---
 
@@ -99,15 +104,15 @@ actualizado: YYYY-MM-DD
 ### Páginas largas
 - `wiki/sistema-renab.md` — 823 palabras, considerar dividir
 
-### Fuentes sin procesar
-- `raw/manual-v3.pdf` — sin entrada en log.md
+### Research gaps o preguntas abiertas sin seguimiento
+- `wiki/sistema-renab.md` — marca integración externa como "pendiente validar" sin fuente ni tarea de seguimiento
 
 ---
 
 ## Acciones recomendadas
 
-1. [acción concreta para resolver el error más crítico]
-2. [acción concreta para el segundo]
+1. [inspección manual concreta para resolver el error más crítico]
+2. [follow-up humano o nueva fuente para el segundo]
 3. ...
 ```
 
@@ -129,6 +134,7 @@ Agregar el reporte generado al índice.
 
 ## Qué NO hacer
 
-- ❌ Nunca modificar páginas durante el lint — solo reportar
+- ❌ Nunca modificar páginas automáticamente durante el lint — solo reportar
 - ❌ Nunca borrar páginas huérfanas automáticamente — solo reportar
 - ❌ Nunca corregir automáticamente errores sin confirmación del usuario
+- ❌ Nunca convertir el lint en reparación automática, ingest determinístico o query/RAG automático

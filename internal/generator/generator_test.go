@@ -3,6 +3,7 @@ package generator_test
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -71,6 +72,10 @@ func TestInit_ClaudeCodeOnly(t *testing.T) {
 	assert.Contains(t, claudeContent, "Legal Wiki")
 	assert.Contains(t, claudeContent, "legal-wiki")
 	assert.Contains(t, claudeContent, "usuario")
+	assertLintContract(t, claudeContent)
+
+	claudeLintContent := readFile(t, filepath.Join(wikiRoot, ".claude", "skills", "wiki-lint", "SKILL.md"))
+	assertLintContract(t, claudeLintContent)
 
 	// log.md must mention the domain.
 	logContent := readFile(t, filepath.Join(wikiRoot, "wiki", "log.md"))
@@ -102,6 +107,11 @@ func TestInit_AllTools(t *testing.T) {
 	assertExists(t, filepath.Join(wikiRoot, ".claude", "skills", "wiki-ingest", "SKILL.md"))
 	assertExists(t, filepath.Join(wikiRoot, ".opencode", "commands", "wiki-ingest.md"))
 	assertExists(t, filepath.Join(wikiRoot, ".pi", "prompts", "wiki-ingest.md"))
+	assertLintContract(t, readFile(t, filepath.Join(wikiRoot, "CLAUDE.md")))
+	assertLintContract(t, readFile(t, filepath.Join(wikiRoot, "AGENTS.md")))
+	assertLintContract(t, readFile(t, filepath.Join(wikiRoot, ".claude", "skills", "wiki-lint", "SKILL.md")))
+	assertLintContract(t, readFile(t, filepath.Join(wikiRoot, ".opencode", "commands", "wiki-lint.md")))
+	assertLintContract(t, readFile(t, filepath.Join(wikiRoot, ".pi", "prompts", "wiki-lint.md")))
 }
 
 func TestInit_DuplicateDirError(t *testing.T) {
@@ -187,4 +197,20 @@ func readFile(t *testing.T, path string) string {
 	data, err := os.ReadFile(path)
 	require.NoError(t, err)
 	return string(data)
+}
+
+func assertLintContract(t *testing.T, content string) {
+	t.Helper()
+
+	for _, fragment := range []string{
+		"Contradicciones entre páginas o contra",
+		"Claims potencialmente desactualizados",
+		"Entidades o conceptos inconsistentes",
+		"Cobertura de enlaces insuficiente",
+		"Citas o trazabilidad de fuentes insuficientes",
+		"Research gaps o preguntas abiertas sin seguimiento",
+		"modificar páginas automáticamente",
+	} {
+		assert.True(t, strings.Contains(content, fragment), "expected generated output to include %q", fragment)
+	}
 }
