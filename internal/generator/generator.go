@@ -32,7 +32,7 @@ type InitConfig struct {
 }
 
 // Init creates a new wiki directory from the given config.
-// The wiki is created at ParentDir/<slug>-wiki/.
+// The wiki is created at ParentDir/<slug>/.
 func Init(cfg InitConfig) (wikiRoot string, err error) {
 	if cfg.ParentDir == "" {
 		cfg.ParentDir, err = os.Getwd()

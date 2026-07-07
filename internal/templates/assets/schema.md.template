@@ -192,26 +192,31 @@ Fuentes consultadas: [[pagina-1]], [[pagina-2]]
 
 Cuando se ejecuta `/wiki-lint`:
 
+Tratar el lint como una evaluación guiada por agente: revisar, contrastar y reportar hallazgos. NO convertirlo en ingest, query determinista, vector search, RAG o reparación automática.
+
 Revisar y reportar con severidad:
 
 **🔴 Error (debe corregirse):**
+- Contradicciones entre páginas o contra las fuentes
+- Claims desactualizados (stale claims) que todavía figuran como vigentes
 - Páginas sin frontmatter o con frontmatter incompleto
 - Slugs que no siguen las reglas de nomenclatura
-- `[[wikilinks]]` rotos (apuntan a páginas que no existen)
-- Páginas con `status: deprecado` sin `ver_sucesor`
 
 **🟡 Advertencia (debería corregirse):**
+- Consistencia de conceptos y entidades con nombres, definiciones o relaciones ambiguas
+- Wikilinks y enlaces críticos faltantes o rotos
+- Citas y trazabilidad hacia `raw/` insuficientes para sostener afirmaciones importantes
 - Páginas con `confianza: baja` sin nota de advertencia visible
-- Páginas con `status: borrador` de más de 30 días sin revisión
-- Páginas huérfanas (no referenciadas por ninguna otra página)
-- Conceptos mencionados en múltiples páginas sin página propia
 
 **🔵 Info (para revisar):**
+- Research gaps o vacíos de investigación antes de elevar confianza
+- Páginas con `status: borrador` de más de 30 días sin revisión
 - Páginas largas (>500 palabras) que podrían dividirse
-- Grupos de páginas sin cross-links entre sí
 - Fuentes en `raw/` sin entrada en `log.md`
 
 Guardar reporte en: `wiki/lint-YYYY-MM-DD.md`
+
+Nunca corregir automáticamente páginas o claims durante el lint — solo reportar y proponer seguimiento humano/agéntico.
 
 ---
 

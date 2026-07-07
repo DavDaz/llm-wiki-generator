@@ -4,6 +4,8 @@ CLI + TUI para crear y gestionar wikis de conocimiento mantenidos por IA, basado
 
 **Un comando crea tu wiki. La IA lo mantiene. El conocimiento se acumula.**
 
+`llm-wiki` no es un motor RAG ni un parser determinístico de documentos. La CLI crea y mantiene el espacio de trabajo; el agente de IA ejecuta las operaciones de conocimiento: ingestar fuentes, responder preguntas y auditar la salud del wiki.
+
 ---
 
 ## Instalación
@@ -20,6 +22,20 @@ brew install llm-wiki
 ```bash
 go install github.com/DavDaz/llm-wiki-generator/cmd/llm-wiki@latest
 ```
+
+---
+
+## Camino principal
+
+El flujo base es chico a propósito:
+
+1. Creás el workspace con `llm-wiki init`.
+2. Agregás fuentes curadas e inmutables en `raw/`.
+3. Le pedís al agente elegido que ejecute `/wiki-ingest`.
+4. Consultás el conocimiento compilado con `/wiki-query`.
+5. Auditás periódicamente el wiki con `/wiki-lint`.
+
+El resultado es un wiki markdown que mejora con el tiempo: `raw/` conserva las fuentes, `wiki/` acumula síntesis, `wiki/index.md` organiza la navegación y `wiki/log.md` deja trazabilidad.
 
 ---
 
@@ -47,6 +63,16 @@ Al terminar tenés un directorio listo con `CLAUDE.md` / `AGENTS.md` configurado
 
 ---
 
+## Qué es core y qué es opcional
+
+| Nivel | Incluye | Rol en el patrón LLM Wiki |
+| --- | --- | --- |
+| Core | `raw/`, `wiki/`, `wiki.toml`, `index.md`, `log.md`, `/wiki-ingest`, `/wiki-query`, `/wiki-lint`, `CLAUDE.md` / `AGENTS.md` | Hace explícito el ciclo de fuentes curadas → síntesis markdown → consulta → auditoría. |
+| Conveniencia | Dashboard TUI, gestión de tools, estados de páginas, creación rápida de notas en `raw/`, migraciones | Ayuda a operar el wiki sin cambiar el modelo mental principal. |
+| Avanzado/opcional | Ollama Modelfile, múltiples backends, flujos locales especializados | Útil cuando el equipo lo necesita, pero no requerido para empezar ni para entender el patrón. |
+
+---
+
 ## Gestionar un wiki existente
 
 ```bash
@@ -58,12 +84,15 @@ llm-wiki
 ```
 
 `llm-wiki` dentro de un wiki y `llm-wiki manage` muestran un menú raíz con:
+- New raw note
 - Tools backends
 - Drafts (`status: borrador`)
 - Published (`status: vigente`)
 - Deprecated (`status: deprecado`)
 
 En cada bucket de páginas podés cambiar status con opciones contextuales: nunca aparece el status actual, siempre aparece `cancel`.
+
+La opción `New raw note` sirve para capturar material manual en `raw/` sin salir del dashboard. Es una conveniencia: la nota queda como fuente curada y después el agente la incorpora al wiki con `/wiki-ingest`.
 
 ### Comandos headless
 
@@ -72,7 +101,10 @@ llm-wiki status                   # estado del wiki y tools instalados
 llm-wiki add-tool opencode        # habilitar un tool backend
 llm-wiki remove-tool pi           # deshabilitar un tool backend
 llm-wiki migrate                  # aplicar cambios del manifest al filesystem
+llm-wiki doctor                   # chequeo estructural read-only; devuelve exit code != 0 si hay errores
 ```
+
+`llm-wiki doctor` hace un chequeo estructural read-only del wiki actual. Reporta problemas en el manifest, archivos core, salidas de tools y enlaces, y devuelve exit code no cero cuando encuentra errores estructurales, así que sirve para validaciones locales o CI sin mutar el workspace.
 
 ---
 
@@ -184,6 +216,14 @@ cp mi-manual.pdf tu-wiki/raw/
 
 # Reprocesar una fuente específica (sin releer todo raw/):
 /wiki-ingest raw/manual-operativo.md
+```
+
+También podés crear una nota desde el dashboard:
+
+```bash
+cd tu-wiki/
+llm-wiki manage
+# Elegí "New raw note" y luego ejecutá /wiki-ingest con tu agente.
 ```
 
 ### Hacer preguntas

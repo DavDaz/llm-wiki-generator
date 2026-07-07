@@ -10,7 +10,8 @@
 - `go test ./internal/manifest -run Test` — focused manifest coverage.
 - `make test` — full suite with `-race`.
 - `make lint` — `golangci-lint run ./...`.
-- `make release VERSION=v0.3.0` — tags and pushes; GitHub Actions + GoReleaser publish binaries and update the Homebrew tap.
+- `make preflight` — verifies a clean git tree and runs `go test ./...` before release actions.
+- `make release VERSION=v0.3.0` — runs preflight, then tags and pushes; GitHub Actions + GoReleaser publish binaries and update the Homebrew tap.
 
 ## Architecture
 - `internal/cmd/root.go`: no-arg behavior is context-sensitive.
@@ -52,4 +53,4 @@
 - Generation/migration: `internal/generator/generator.go`
 - Tool install layout: `internal/tools/*.go`
 - Generated content source: `internal/templates/assets/*`
-- Release flow: `Makefile`, `.goreleaser.yaml`, `.github/workflows/release.yml`
+- Release flow: `Makefile`, `.goreleaser.yaml`, `.github/workflows/ci.yml`, `.github/workflows/release.yml`
