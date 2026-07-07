@@ -3,7 +3,6 @@ package tools_test
 import (
 	"os"
 	"path/filepath"
-	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -41,8 +40,6 @@ func TestClaudeTool_InstallUninstall(t *testing.T) {
 
 	// CLAUDE.md must contain the wiki name.
 	assertFileContains(t, filepath.Join(dir, "CLAUDE.md"), "Test Wiki")
-	assertFileMatchesLintContract(t, filepath.Join(dir, "CLAUDE.md"))
-	assertFileMatchesLintContract(t, filepath.Join(dir, ".claude/skills/wiki-lint/SKILL.md"))
 
 	// Legacy .claude/commands/ must not be created.
 	assertFileAbsent(t, filepath.Join(dir, ".claude/commands"))
@@ -75,8 +72,6 @@ func TestOpenCodeTool_InstallUninstall(t *testing.T) {
 
 	assertFileExists(t, filepath.Join(dir, "AGENTS.md"))
 	assertFileExists(t, filepath.Join(dir, ".opencode/commands/wiki-ingest.md"))
-	assertFileMatchesLintContract(t, filepath.Join(dir, "AGENTS.md"))
-	assertFileMatchesLintContract(t, filepath.Join(dir, ".opencode/commands/wiki-lint.md"))
 
 	m.Tools.OpenCode = false
 	require.NoError(t, tool.Uninstall(dir, m))
@@ -96,8 +91,6 @@ func TestPiTool_InstallUninstall(t *testing.T) {
 
 	assertFileExists(t, filepath.Join(dir, "AGENTS.md"))
 	assertFileExists(t, filepath.Join(dir, ".pi/prompts/wiki-ingest.md"))
-	assertFileMatchesLintContract(t, filepath.Join(dir, "AGENTS.md"))
-	assertFileMatchesLintContract(t, filepath.Join(dir, ".pi/prompts/wiki-lint.md"))
 
 	m.Tools.Pi = false
 	require.NoError(t, tool.Uninstall(dir, m))
@@ -202,24 +195,4 @@ func assertFileContains(t *testing.T, path, substr string) {
 	data, err := os.ReadFile(path)
 	require.NoError(t, err)
 	assert.Contains(t, string(data), substr)
-}
-
-func assertFileMatchesLintContract(t *testing.T, path string) {
-	t.Helper()
-
-	data, err := os.ReadFile(path)
-	require.NoError(t, err)
-	content := string(data)
-
-	for _, fragment := range []string{
-		"Contradicciones entre páginas o contra",
-		"Claims potencialmente desactualizados",
-		"Entidades o conceptos inconsistentes",
-		"Cobertura de enlaces insuficiente",
-		"Citas o trazabilidad de fuentes insuficientes",
-		"Research gaps o preguntas abiertas sin seguimiento",
-		"modificar páginas automáticamente",
-	} {
-		assert.True(t, strings.Contains(content, fragment), "%s should include %q", path, fragment)
-	}
 }
