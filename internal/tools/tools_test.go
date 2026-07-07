@@ -40,6 +40,8 @@ func TestClaudeTool_InstallUninstall(t *testing.T) {
 
 	// CLAUDE.md must contain the wiki name.
 	assertFileContains(t, filepath.Join(dir, "CLAUDE.md"), "Test Wiki")
+	assertFileLintContract(t, filepath.Join(dir, "CLAUDE.md"))
+	assertFileLintContract(t, filepath.Join(dir, ".claude/skills/wiki-lint/SKILL.md"))
 
 	// Legacy .claude/commands/ must not be created.
 	assertFileAbsent(t, filepath.Join(dir, ".claude/commands"))
@@ -72,6 +74,8 @@ func TestOpenCodeTool_InstallUninstall(t *testing.T) {
 
 	assertFileExists(t, filepath.Join(dir, "AGENTS.md"))
 	assertFileExists(t, filepath.Join(dir, ".opencode/commands/wiki-ingest.md"))
+	assertFileLintContract(t, filepath.Join(dir, "AGENTS.md"))
+	assertFileLintContract(t, filepath.Join(dir, ".opencode/commands/wiki-lint.md"))
 
 	m.Tools.OpenCode = false
 	require.NoError(t, tool.Uninstall(dir, m))
@@ -91,6 +95,8 @@ func TestPiTool_InstallUninstall(t *testing.T) {
 
 	assertFileExists(t, filepath.Join(dir, "AGENTS.md"))
 	assertFileExists(t, filepath.Join(dir, ".pi/prompts/wiki-ingest.md"))
+	assertFileLintContract(t, filepath.Join(dir, "AGENTS.md"))
+	assertFileLintContract(t, filepath.Join(dir, ".pi/prompts/wiki-lint.md"))
 
 	m.Tools.Pi = false
 	require.NoError(t, tool.Uninstall(dir, m))
@@ -195,4 +201,24 @@ func assertFileContains(t *testing.T, path, substr string) {
 	data, err := os.ReadFile(path)
 	require.NoError(t, err)
 	assert.Contains(t, string(data), substr)
+}
+
+func assertFileLintContract(t *testing.T, path string) {
+	t.Helper()
+
+	data, err := os.ReadFile(path)
+	require.NoError(t, err)
+	content := string(data)
+
+	for _, expected := range []string{
+		"Contradicciones entre páginas o contra las fuentes",
+		"Claims desactualizados (stale claims)",
+		"Consistencia de conceptos y entidades",
+		"Wikilinks y enlaces críticos",
+		"Citas y trazabilidad hacia `raw/`",
+		"Research gaps o vacíos de investigación",
+		"Nunca corregir automáticamente",
+	} {
+		assert.Contains(t, content, expected)
+	}
 }

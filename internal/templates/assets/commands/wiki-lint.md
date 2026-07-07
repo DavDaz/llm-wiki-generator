@@ -31,27 +31,30 @@ Leer el schema del dominio (`CLAUDE.md` o `AGENTS.md`, el que exista en el proye
 Listar todos los archivos en `wiki/` (excepto `index.md`, `log.md`, y reportes de lint anteriores).
 Leer `wiki/index.md` para comparar contra archivos reales.
 
-### Paso 2 — Ejecutar los 11 checks
+### Paso 2 — Ejecutar los checks obligatorios
+
+Antes de clasificar severidades, revisar SIEMPRE estas categorías semánticas:
+
+1. **Contradicciones entre páginas o contra las fuentes** — detectar afirmaciones incompatibles entre páginas del wiki o contra la evidencia disponible en `raw/`.
+2. **Claims desactualizados (stale claims)** — detectar páginas vigentes que quedaron atrasadas respecto de fuentes más recientes, cambios de proceso o notas del log.
+3. **Consistencia de conceptos y entidades** — detectar conceptos/entidades nombrados o definidos de forma inconsistente, relaciones conflictivas o conceptos recurrentes sin página canónica.
+4. **Wikilinks y enlaces críticos** — detectar `[[wikilinks]]` rotos, cross-links faltantes entre páginas estrechamente relacionadas y sucesores deprecados no enlazados.
+5. **Citas y trazabilidad hacia `raw/`** — detectar afirmaciones importantes sin soporte suficiente en `fuentes`, citas débiles o trazabilidad incompleta hacia material base.
+6. **Research gaps o vacíos de investigación** — detectar preguntas abiertas, cobertura insuficiente, ambigüedad no resuelta o áreas donde falta evidencia antes de subir la confianza.
+
+Luego complementar con checks estructurales y operativos:
 
 **Checks de Error 🔴** (bloquean confiabilidad del wiki):
 
-1. **Frontmatter incompleto** — páginas sin algún campo obligatorio (tipo, titulo, dominio, status, confianza, fuentes, actualizado)
-2. **Slugs inválidos** — nombres de archivo que no siguen las reglas de nomenclatura del schema
-3. **Wikilinks rotos** — `[[referencias]]` a páginas que no existen en `wiki/`
-4. **Deprecados sin sucesor** — páginas con `status: deprecado` sin campo `ver_sucesor`
-5. **Tipo inválido** — páginas con un `tipo` que no está definido en el schema
+7. **Frontmatter incompleto** — páginas sin algún campo obligatorio (tipo, titulo, dominio, status, confianza, fuentes, actualizado)
+8. **Slugs inválidos** — nombres de archivo que no siguen las reglas de nomenclatura del schema
+9. **Tipo inválido** — páginas con un `tipo` que no está definido en el schema
 
 **Checks de Advertencia 🟡** (degradan calidad del wiki):
 
-6. **Borradores viejos** — páginas con `status: borrador` creadas hace más de 30 días sin revisión
-7. **Confianza baja sin nota** — páginas con `confianza: baja` sin el bloque de advertencia visible
-8. **Páginas huérfanas** — páginas que no son referenciadas por ninguna otra página ni por `index.md`
-9. **Conceptos sin página** — términos que aparecen como `[[wikilink]]` en múltiples páginas pero no tienen página propia
-
-**Checks de Info 🔵** (oportunidades de mejora):
-
-10. **Páginas largas** — páginas con más de 500 palabras que podrían dividirse
-11. **Fuentes sin procesar** — archivos en `raw/` que no tienen entrada en `wiki/log.md`
+10. **Borradores viejos** — páginas con `status: borrador` creadas hace más de 30 días sin revisión
+11. **Páginas largas** — páginas con más de 500 palabras que podrían dividirse
+12. **Fuentes sin procesar** — archivos en `raw/` que no tienen entrada en `wiki/log.md`
 
 ### Paso 3 — Generar reporte
 Guardar en `wiki/lint-YYYY-MM-DD.md`:
@@ -75,39 +78,38 @@ actualizado: YYYY-MM-DD
 
 ## 🔴 Errores (X)
 
-### Frontmatter incompleto
-- `wiki/nombre-pagina.md` — falta campo: `confianza`
-- `wiki/otra-pagina.md` — falta campo: `fuentes`
+### Contradicciones entre páginas o contra las fuentes
+- `wiki/roles.md` afirma que Supervisor aprueba accesos, pero `wiki/politica-acceso.md` indica que solo Seguridad puede aprobarlos
 
-### Wikilinks rotos
-- `wiki/crear-usuario.md` → [[rol-supervisor]] (no existe)
+### Citas y trazabilidad hacia `raw/`
+- `wiki/crear-usuario.md` describe una excepción operativa sin fuente verificable en `raw/`
 
 ---
 
 ## 🟡 Advertencias (Y)
 
-### Borradores viejos (+30 días)
-- `wiki/politica-acceso.md` — borrador desde 2026-03-01
+### Claims desactualizados (stale claims)
+- `wiki/configuracion-smtp.md` no refleja el procedimiento documentado en `raw/manual-v3.pdf`
 
-### Páginas huérfanas
-- `wiki/configuracion-smtp.md` — no referenciada por ninguna página
+### Consistencia de conceptos y entidades
+- `wiki/roles.md` usa "Supervisor" y `wiki/crear-usuario.md` usa "Aprobador" para la misma entidad sin aclaración
 
 ---
 
 ## 🔵 Info (Z)
 
-### Páginas largas
-- `wiki/sistema-renab.md` — 823 palabras, considerar dividir
+### Wikilinks y enlaces críticos
+- `wiki/onboarding.md` debería enlazar `[[crear-usuario]]` y `[[roles]]` pero no lo hace
 
-### Fuentes sin procesar
-- `raw/manual-v3.pdf` — sin entrada en log.md
+### Research gaps o vacíos de investigación
+- Falta evidencia en `raw/` para confirmar quién puede revocar permisos temporales
 
 ---
 
 ## Acciones recomendadas
 
-1. [acción concreta para resolver el error más crítico]
-2. [acción concreta para el segundo]
+1. [inspección concreta para validar la contradicción o claim desactualizado más crítico]
+2. [seguimiento para completar citas, enlaces o evidencia faltante]
 3. ...
 ```
 
@@ -132,3 +134,4 @@ Agregar el reporte generado al índice.
 - ❌ Nunca modificar páginas durante el lint — solo reportar
 - ❌ Nunca borrar páginas huérfanas automáticamente — solo reportar
 - ❌ Nunca corregir automáticamente errores sin confirmación del usuario
+- ❌ Nunca convertir el lint en ingest, query determinista, vector search, RAG o reparación automática
