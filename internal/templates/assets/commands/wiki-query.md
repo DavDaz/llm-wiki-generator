@@ -53,7 +53,7 @@ Fuentes consultadas: [[pagina-1]], [[pagina-2]]
 - Si la información NO está en el wiki → decirlo explícitamente:
   ```
   Esta información no está documentada en el wiki todavía.
-  ¿Deseas que la agreguemos? Puedo crear un borrador en wiki/ si me das los detalles.
+  Para incorporarla, agrega una fuente en `raw/` y ejecuta `/wiki-ingest raw/[archivo]`.
   ```
 - Si hay páginas con `confianza: baja` o `status: borrador` en las fuentes → advertirlo:
   ```
@@ -61,12 +61,12 @@ Fuentes consultadas: [[pagina-1]], [[pagina-2]]
   Se recomienda verificación.
   ```
 
-### Paso 5 — Ofrecer persistencia
-Al final de cada respuesta que aporte conocimiento nuevo o síntesis no existente, preguntar:
+### Paso 5 — Ofrecer ingest si falta conocimiento
+Si la pregunta revela conocimiento que no está documentado en `wiki/`, no crear páginas desde `/wiki-query`. Ofrecer iniciar un ingest separado con fuentes en `raw/`:
 
 ```
-¿Deseas guardar esta respuesta como nueva página en el wiki?
-Si es así, la crearía como: wiki/[slug-sugerido].md (tipo: referencia, status: borrador)
+Esta información no está documentada en el wiki todavía.
+Si deseas incorporarla, agrega la fuente en `raw/` y ejecuta `/wiki-ingest raw/[archivo]`.
 ```
 
 ---
