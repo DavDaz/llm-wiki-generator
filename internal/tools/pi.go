@@ -30,7 +30,7 @@ func (PiTool) Install(wikiRoot string, m *manifest.Manifest) error {
 		return fmt.Errorf("create %s: %w", promptsDir, err)
 	}
 
-	content, err := renderSchema(m, piPromptsDir, piPromptsTree, "AGENTS.md")
+	content, err := renderSchema(m, piPromptsTree, "AGENTS.md")
 	if err != nil {
 		return err
 	}

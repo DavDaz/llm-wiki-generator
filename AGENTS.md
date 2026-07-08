@@ -6,8 +6,10 @@
 
 ## Commands
 - `go test ./...` — full verified test suite.
+- `go test ./internal/cmd -run Test` — focused CLI command wiring, including `doctor`.
 - `go test ./internal/generator -run Test` — focused generator coverage.
 - `go test ./internal/manifest -run Test` — focused manifest coverage.
+- `go test ./internal/tools -run Test` — focused backend install/render wiring.
 - `make test` — full suite with `-race`.
 - `make lint` — `golangci-lint run ./...`.
 - `make preflight` — verifies a clean git tree and runs `go test ./...` before release actions.
@@ -17,9 +19,10 @@
 - `internal/cmd/root.go`: no-arg behavior is context-sensitive.
   - inside a wiki (`wiki.toml` present) → dashboard TUI
   - outside a wiki → launcher, then guide or init wizard
+- `internal/cmd/doctor.go`: `llm-wiki doctor` runs bounded, read-only structural checks for the current wiki.
 - `internal/cmd/init.go`: headless mode requires BOTH `--name` and `--slug`; valid tool names are `claude-code`, `opencode`, `pi`, `all`.
 - `internal/manifest/manifest.go`: `wiki.toml` is the single source of truth.
-- `internal/generator/generator.go`: writes `wiki.toml`, `wiki/index.md`, `wiki/log.md`, `.gitignore`, then installs enabled tools.
+- `internal/generator/generator.go`: writes `wiki.toml`, `wiki/index.md`, `wiki/log.md`, `wiki/sources.json`, `.gitignore`, then installs enabled tools.
 - `internal/tools/*.go`: backend-specific output paths:
   - Claude → `CLAUDE.md` + `.claude/skills/*`
   - OpenCode → `AGENTS.md` + `.opencode/commands/*`
@@ -39,8 +42,9 @@
 
 ## Verification
 - For generator, manifest, or tool-install changes: run the focused package test plus `go test ./...`.
+- For backend render/install changes: run `go test ./internal/tools -run Test`.
 - For template changes: run at least `go test ./internal/generator -run Test` because those tests assert generated files and content markers.
-- For command wiring changes: run `go test ./...`.
+- For command wiring or maintainer guidance that references CLI behavior: run `go test ./internal/cmd -run Test` and `go test ./...`.
 
 ## Do Not
 - Do NOT edit generated wiki output as source; change `internal/templates/assets/*` or installer logic instead.

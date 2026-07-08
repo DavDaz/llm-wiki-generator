@@ -35,7 +35,7 @@ func (ClaudeTool) Install(wikiRoot string, m *manifest.Manifest) error {
 		}
 	}
 
-	content, err := renderSchema(m, claudeSkillsDir, claudeSkillsTree, "CLAUDE.md")
+	content, err := renderSchema(m, claudeSkillsTree, "CLAUDE.md")
 	if err != nil {
 		return err
 	}
@@ -57,7 +57,7 @@ func (ClaudeTool) Uninstall(wikiRoot string, _ *manifest.Manifest) error {
 }
 
 // renderSchema builds the schema/instructions file content for a given tool.
-func renderSchema(m *manifest.Manifest, commandsDir, commandsTree, instructionsFile string) (string, error) {
+func renderSchema(m *manifest.Manifest, commandsTree, instructionsFile string) (string, error) {
 	conventions := make([]string, len(m.Domain.Conventions))
 	for i, c := range m.Domain.Conventions {
 		conventions[i] = c.Rule
@@ -71,7 +71,6 @@ func renderSchema(m *manifest.Manifest, commandsDir, commandsTree, instructionsF
 		PrimaryEntities:  m.Domain.PrimaryEntities,
 		PageTypes:        m.Domain.PageTypes,
 		Conventions:      conventions,
-		CommandsDir:      commandsDir,
 		CommandsTree:     commandsTree,
 		InstructionsFile: instructionsFile,
 	}

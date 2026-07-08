@@ -30,7 +30,7 @@ func (OpenCodeTool) Install(wikiRoot string, m *manifest.Manifest) error {
 		return fmt.Errorf("create %s: %w", cmdsDir, err)
 	}
 
-	content, err := renderSchema(m, opencodeCommandsDir, opencodeCommandsTree, "AGENTS.md")
+	content, err := renderSchema(m, opencodeCommandsTree, "AGENTS.md")
 	if err != nil {
 		return err
 	}

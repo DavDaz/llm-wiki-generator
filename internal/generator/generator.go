@@ -46,7 +46,6 @@ func Init(cfg InitConfig) (wikiRoot string, err error) {
 		return "", fmt.Errorf("directory already exists: %s", wikiRoot)
 	}
 
-	// Build manifest.
 	m := manifest.New(cfg.Name, cfg.Slug, cfg.Language)
 	m.Tools.ClaudeCode = cfg.ClaudeCode
 	m.Tools.OpenCode = cfg.OpenCode
@@ -66,19 +65,16 @@ func Init(cfg InitConfig) (wikiRoot string, err error) {
 		return "", fmt.Errorf("invalid config: %w", err)
 	}
 
-	// Create directory structure.
 	for _, dir := range []string{wikiRoot, filepath.Join(wikiRoot, "raw"), filepath.Join(wikiRoot, "wiki")} {
 		if err := os.MkdirAll(dir, 0o755); err != nil {
 			return "", fmt.Errorf("create dir %s: %w", dir, err)
 		}
 	}
 
-	// Write manifest.
 	if err := m.Save(wikiRoot); err != nil {
 		return "", err
 	}
 
-	// Write wiki/index.md, wiki/log.md, and wiki/sources.json.
 	if err := writeFile(filepath.Join(wikiRoot, "wiki", "index.md"), templates.RenderIndex(cfg.Name)); err != nil {
 		return "", err
 	}
@@ -90,12 +86,10 @@ func Init(cfg InitConfig) (wikiRoot string, err error) {
 		return "", err
 	}
 
-	// Write .gitignore.
 	if err := writeFile(filepath.Join(wikiRoot, ".gitignore"), ".DS_Store\n*.swp\n*.tmp\n"); err != nil {
 		return "", err
 	}
 
-	// Install enabled tools.
 	if err := applyTools(wikiRoot, m); err != nil {
 		return "", err
 	}

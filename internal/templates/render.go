@@ -37,7 +37,6 @@ type SchemaData struct {
 	PrimaryEntities  []string
 	PageTypes        []string
 	Conventions      []string // raw rule strings
-	CommandsDir      string   // e.g. ".claude/skills" — kept for schema replacer
 	CommandsTree     string   // pre-rendered directory tree for the commands section
 	InstructionsFile string   // "CLAUDE.md" or "AGENTS.md"
 }
@@ -61,7 +60,6 @@ func RenderSchema(data SchemaData) (string, error) {
 		"{{PAGE_TYPES_LIST}}", buildYAMLList(data.PageTypes),
 		"{{PAGE_TYPES_DETAIL}}", buildPageTypesDetail(data.PageTypes),
 		"{{DOMAIN_CONVENTIONS}}", buildConventions(data.Conventions),
-		"{{COMMANDS_DIR}}", data.CommandsDir,
 		"{{COMMANDS_TREE}}", data.CommandsTree,
 		"{{INSTRUCTIONS_FILE}}", data.InstructionsFile,
 	)

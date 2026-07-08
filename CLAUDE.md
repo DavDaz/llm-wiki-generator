@@ -54,11 +54,12 @@ go install github.com/DavDaz/llm-wiki-generator/cmd/llm-wiki@latest
 ```
 cmd/llm-wiki/          → entrypoint del binario
 internal/
-  cmd/                 → comandos Cobra (init, manage, status, add-tool, remove-tool, migrate)
-  generator/           → crea y migra wikis en el filesystem
+  cmd/                 → comandos Cobra (init, manage, status, add-tool, remove-tool, migrate, doctor)
+  doctor/              → chequeos estructurales read-only del wiki actual
+  generator/           → crea y migra wikis en el filesystem; inicializa `wiki/index.md`, `wiki/log.md`, `wiki/sources.json` y `.gitignore`
   manifest/            → lee/escribe wiki.toml
   templates/           → render + archivos embebidos
-  tools/               → registry de tool backends (claude-code, opencode, pi)
+  tools/               → registry de backends y layout generado (`CLAUDE.md`, `AGENTS.md`, `.claude/skills`, `.opencode/commands`, `.pi/prompts`)
   tui/
     wizard/            → form TUI para llm-wiki init (huh + bubbletea)
     dashboard/         → panel de gestión para llm-wiki manage (bubbletea)
@@ -82,8 +83,11 @@ llm-wiki status                        # estado del wiki actual
 llm-wiki add-tool opencode             # habilitar tool backend
 llm-wiki remove-tool pi                # deshabilitar tool backend
 llm-wiki migrate                       # sincronizar manifest con filesystem
+llm-wiki doctor                        # chequeo estructural read-only del wiki actual
 llm-wiki version                       # imprimir versión
 ```
+
+`llm-wiki doctor` pertenece al CLI raíz y no amplía el scope de comandos generados: en el wiki siguen existiendo únicamente `/wiki-ingest`, `/wiki-query` y `/wiki-lint`.
 
 ## Nota técnica importante — bubbletea + huh
 
